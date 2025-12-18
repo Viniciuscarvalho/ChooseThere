@@ -170,9 +170,6 @@ struct RestaurantListView: View {
             sectionHeader(title: formatCategory(group.category))
           }
         }
-
-        // Bottom padding for TabBar
-        Color.clear.frame(height: 100)
       }
       .padding(.horizontal, 20)
     }

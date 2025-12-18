@@ -219,7 +219,9 @@ struct RatingView: View {
   private func saveButton(vm: RatingViewModel) -> some View {
     Button {
       if vm.save() {
-        router.reset(to: .history)
+        // Salvar qual tab deve ser selecionada ao voltar
+        UserDefaults.standard.set(Tab.history.rawValue, forKey: "selectedTabOnReturn")
+        router.reset(to: .mainTabs)
       }
     } label: {
       HStack {

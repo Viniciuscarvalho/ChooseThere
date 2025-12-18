@@ -55,9 +55,6 @@ struct HistoryView: View {
               visitCard(visit: visit, restaurant: restaurant)
             }
           }
-
-          // Space for TabBar
-          Color.clear.frame(height: 100)
         }
         .padding(20)
       }
@@ -186,7 +183,8 @@ struct HistoryView: View {
         .padding(.horizontal, 40)
 
       Button {
-        router.reset(to: .preferences)
+        // Mudar para a tab de sorteio usando notificação
+        Tab.draw.select()
       } label: {
         HStack {
           Image(systemName: "dice.fill")

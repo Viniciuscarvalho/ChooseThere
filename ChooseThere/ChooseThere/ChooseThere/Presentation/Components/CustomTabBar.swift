@@ -28,9 +28,17 @@ enum Tab: Int, CaseIterable {
     case .restaurants: return "Restaurantes"
     }
   }
+
+  /// Notificação para mudar a tab de qualquer lugar do app
+  static let changeTabNotification = Notification.Name("ChangeTabNotification")
+
+  /// Muda para esta tab usando NotificationCenter
+  func select() {
+    NotificationCenter.default.post(name: Tab.changeTabNotification, object: self)
+  }
 }
 
-/// TabBar customizada com aba central destacada
+/// TabBar customizada com aba central destacada - estilo ilha flutuante
 struct CustomTabBar: View {
   @Binding var selectedTab: Tab
 
@@ -46,13 +54,16 @@ struct CustomTabBar: View {
         }
       }
     }
-    .padding(.horizontal, 24)
-    .padding(.top, 8)
-    .padding(.bottom, 4)
+    .padding(.horizontal, 16)
+    .padding(.top, 10)
+    .padding(.bottom, 8)
     .background(
-      AppColors.surface
-        .shadow(color: Color.black.opacity(0.06), radius: 12, y: -3)
+      RoundedRectangle(cornerRadius: 24, style: .continuous)
+        .fill(AppColors.surface)
+        .shadow(color: Color.black.opacity(0.1), radius: 16, y: 4)
     )
+    .padding(.horizontal, 32)
+    .padding(.bottom, 8)
   }
 
   // MARK: - Regular Tab

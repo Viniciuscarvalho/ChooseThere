@@ -35,15 +35,19 @@ struct PreferencesView: View {
 
               avoidTagsSection(vm: vm)
 
-              // Extra space for TabBar
-              Spacer(minLength: 100)
+              // Extra space at bottom
+              Spacer(minLength: 20)
             }
             .padding(20)
           }
 
-          // Botão de sortear fixo acima da TabBar
-          sortButton(vm: vm)
+          // Botão de sortear fixo acima da TabBar - só aparece com seleção
+          if hasSelection(vm: vm) {
+            sortButton(vm: vm)
+              .transition(.move(edge: .bottom).combined(with: .opacity))
+          }
         }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: hasSelection(vm: vm))
       } else {
         ProgressView()
           .tint(AppColors.primary)
@@ -192,10 +196,10 @@ struct PreferencesView: View {
       .frame(maxWidth: .infinity)
       .padding(.vertical, 14)
       .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .shadow(color: AppColors.primary.opacity(0.3), radius: 8, y: 4)
     }
-    .padding(.horizontal, 20)
-    .padding(.vertical, 8)
-    .background(AppColors.background)
+    .padding(.horizontal, 32) // Mesmo padding horizontal da TabBar
+    .padding(.vertical, 12)
     .accessibilityLabel("Sortear agora")
     .alert("Nenhum restaurante encontrado", isPresented: $showNoResultsAlert) {
       Button("OK", role: .cancel) { }
@@ -205,6 +209,11 @@ struct PreferencesView: View {
   }
 
   // MARK: - Helpers
+
+  /// Verifica se há alguma seleção de tags (desejadas ou evitar)
+  private func hasSelection(vm: PreferencesViewModel) -> Bool {
+    !vm.selectedTags.isEmpty || !vm.avoidTags.isEmpty
+  }
 
   private func initializeViewModel() {
     guard viewModel == nil else { return }
