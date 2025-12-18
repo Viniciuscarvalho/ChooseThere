@@ -64,3 +64,4 @@ Consultar `techspec.md` para:
 - `ChooseThere/Presentation/Components/CustomTabBar.swift` (criar)
 - `ChooseThere/Application/RootView.swift` (modificar)
 
+

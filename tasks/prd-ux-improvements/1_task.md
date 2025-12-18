@@ -66,3 +66,4 @@ Consultar `techspec.md` para:
 - `ChooseThere/Application/RootView.swift` (modificar)
 - `ChooseThere/Application/OnboardingStorage.swift` (criar)
 
+

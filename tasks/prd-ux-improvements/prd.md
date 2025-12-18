@@ -174,3 +174,4 @@ Corrige o corte do nome do restaurante.
 3. **Q3**: A aba Sortear deve manter estado se o usuário alternar abas?
    - **Resposta proposta**: Sim, preservar preferências selecionadas
 
+

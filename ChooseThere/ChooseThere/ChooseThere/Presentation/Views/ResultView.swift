@@ -46,23 +46,46 @@ struct ResultView: View {
   @ViewBuilder
   private func contentView(restaurant: Restaurant, vm: ResultViewModel) -> some View {
     GeometryReader { geometry in
-      VStack(spacing: 0) {
-        // Map Section - 45% of screen height
-        mapSection(restaurant: restaurant, vm: vm)
-          .frame(height: geometry.size.height * 0.45)
+      ZStack(alignment: .topLeading) {
+        VStack(spacing: 0) {
+          // Map Section - 45% of screen height
+          mapSection(restaurant: restaurant, vm: vm)
+            .frame(height: geometry.size.height * 0.45)
 
-        // Card overlapping the map
-        VStack(spacing: 16) {
-          restaurantCard(restaurant: restaurant, vm: vm)
+          // Card overlapping the map
+          VStack(spacing: 16) {
+            restaurantCard(restaurant: restaurant, vm: vm)
 
-          actionButtons(vm: vm)
+            actionButtons(vm: vm)
+          }
+          .padding(.horizontal, 20)
+          .padding(.top, -40)
+
+          Spacer(minLength: 0)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, -40)
-
-        Spacer(minLength: 0)
+        
+        // Botão de voltar
+        backButton
+          .padding(.top, 16)
+          .padding(.leading, 20)
       }
     }
+  }
+  
+  // MARK: - Back Button
+  
+  private var backButton: some View {
+    Button {
+      router.pop()
+    } label: {
+      Image(systemName: "chevron.left")
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundStyle(AppColors.textPrimary)
+        .frame(width: 40, height: 40)
+        .background(.ultraThinMaterial, in: Circle())
+        .shadow(color: Color.black.opacity(0.1), radius: 4, y: 2)
+    }
+    .accessibilityLabel("Voltar")
   }
 
   // MARK: - Map

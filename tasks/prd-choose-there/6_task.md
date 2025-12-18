@@ -65,3 +65,4 @@ Criar a tela principal do app, responsável por definir o contexto do sorteio e 
 - `tasks/prd-choose-there/prd.md`
 - `tasks/prd-choose-there/techspec.md`
 
+

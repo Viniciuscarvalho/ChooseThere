@@ -197,3 +197,4 @@ Mocks:
 - `.cursor/rules/code-standards.md` (padrões de código)
 
 
+

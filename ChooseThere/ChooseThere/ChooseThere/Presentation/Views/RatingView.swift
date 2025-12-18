@@ -60,6 +60,26 @@ struct RatingView: View {
 
   private var headerSection: some View {
     VStack(alignment: .leading, spacing: 6) {
+      HStack {
+        Button {
+          router.pop()
+        } label: {
+          Image(systemName: "chevron.left")
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(AppColors.textSecondary)
+            .frame(width: 40, height: 40)
+            .background(AppColors.surface, in: Circle())
+            .overlay(
+              Circle()
+                .stroke(AppColors.divider, lineWidth: 1)
+            )
+        }
+        .accessibilityLabel("Voltar")
+        
+        Spacer()
+      }
+      .padding(.bottom, 8)
+      
       Text("Como foi a visita?")
         .font(.title2.weight(.bold))
         .foregroundStyle(AppColors.textPrimary)

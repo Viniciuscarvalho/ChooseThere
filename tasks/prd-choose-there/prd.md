@@ -116,3 +116,4 @@ Requisitos funcionais:
 - Google Maps: suportar já na V1 como opção de abrir rota, ou manter apenas Apple Maps inicialmente?
 
 
+

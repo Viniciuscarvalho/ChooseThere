@@ -26,3 +26,4 @@ struct RestaurantDTO: Decodable {
   let lng: Double?
 }
 
+

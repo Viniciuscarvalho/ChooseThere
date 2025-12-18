@@ -43,32 +43,41 @@ struct HistoryDetailView: View {
 
   private func contentView(restaurant: Restaurant, visit: Visit) -> some View {
     VStack(spacing: 0) {
-      // Map - reduced height
-      mapSection(restaurant: restaurant)
-        .frame(height: 180)
-
-      ScrollView {
-        VStack(spacing: 16) {
-          // Restaurant Card
-          restaurantCard(restaurant: restaurant)
-            .padding(.top, -24)
-
-          // Visit Info
-          visitInfoCard(visit: visit)
-
-          // Tags
-          if !visit.tags.isEmpty {
-            tagsCard(tags: visit.tags)
-          }
-
-          // Note
-          if let note = visit.note, !note.isEmpty {
-            noteCard(note: note)
-          }
-
-          Spacer(minLength: 80)
+      // Map + ScrollView com ZStack para garantir ordem visual correta
+      ZStack(alignment: .top) {
+        // Map - reduced height
+        VStack(spacing: 0) {
+          mapSection(restaurant: restaurant)
+            .frame(height: 180)
+          Spacer()
         }
-        .padding(.horizontal, 20)
+        .zIndex(0)
+        
+        // ScrollView com o conteúdo
+        ScrollView {
+          VStack(spacing: 16) {
+            // Restaurant Card - sobrepõe o mapa
+            restaurantCard(restaurant: restaurant)
+              .padding(.top, 156) // 180 - 24 para sobrepor o mapa
+
+            // Visit Info
+            visitInfoCard(visit: visit)
+
+            // Tags
+            if !visit.tags.isEmpty {
+              tagsCard(tags: visit.tags)
+            }
+
+            // Note
+            if let note = visit.note, !note.isEmpty {
+              noteCard(note: note)
+            }
+
+            Spacer(minLength: 80)
+          }
+          .padding(.horizontal, 20)
+        }
+        .zIndex(1)
       }
 
       actionButtons(restaurant: restaurant)

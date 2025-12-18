@@ -19,3 +19,4 @@ protocol VisitRepository {
   func fetchVisits(for restaurantId: String) throws -> [Visit]
 }
 
+

@@ -61,3 +61,4 @@ Criar uma etapa divertida entre preferências e resultado, aumentando o engajame
 - `tasks/prd-choose-there/prd.md`
 - `tasks/prd-choose-there/techspec.md`
 
+

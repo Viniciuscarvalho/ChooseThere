@@ -58,3 +58,4 @@ Text(restaurant.name)
 ## Arquivos relevantes
 - `ChooseThere/Presentation/Views/HistoryDetailView.swift` (modificar)
 
+

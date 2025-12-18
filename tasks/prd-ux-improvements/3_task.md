@@ -62,3 +62,4 @@ Consultar `techspec.md` para:
 - `ChooseThere/Presentation/ViewModels/RestaurantListViewModel.swift` (criar)
 - `ChooseThere/Data/Repositories/SwiftDataRestaurantRepository.swift` (reutilizar)
 
+

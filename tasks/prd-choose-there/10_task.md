@@ -60,3 +60,4 @@ Exibir e gerenciar o histórico de visitas, incluindo filtros úteis e detalhe c
 - `tasks/prd-choose-there/prd.md`
 - `tasks/prd-choose-there/techspec.md`
 
+
