@@ -45,21 +45,23 @@ struct ResultView: View {
 
   @ViewBuilder
   private func contentView(restaurant: Restaurant, vm: ResultViewModel) -> some View {
-    VStack(spacing: 0) {
-      // Map Section
-      mapSection(restaurant: restaurant, vm: vm)
-        .frame(height: 280)
+    GeometryReader { geometry in
+      VStack(spacing: 0) {
+        // Map Section - 45% of screen height
+        mapSection(restaurant: restaurant, vm: vm)
+          .frame(height: geometry.size.height * 0.45)
 
-      // Card overlapping the map
-      VStack(spacing: 20) {
-        restaurantCard(restaurant: restaurant, vm: vm)
+        // Card overlapping the map
+        VStack(spacing: 16) {
+          restaurantCard(restaurant: restaurant, vm: vm)
 
-        actionButtons(vm: vm)
+          actionButtons(vm: vm)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, -40)
 
-        Spacer()
+        Spacer(minLength: 0)
       }
-      .padding(.horizontal, 20)
-      .padding(.top, -40)
     }
   }
 

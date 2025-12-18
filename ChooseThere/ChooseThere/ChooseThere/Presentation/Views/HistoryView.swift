@@ -55,11 +55,12 @@ struct HistoryView: View {
               visitCard(visit: visit, restaurant: restaurant)
             }
           }
+
+          // Space for TabBar
+          Color.clear.frame(height: 100)
         }
         .padding(20)
       }
-
-      newSortButton
     }
   }
 
@@ -198,27 +199,6 @@ struct HistoryView: View {
         .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
       }
     }
-  }
-
-  // MARK: - New Sort Button
-
-  private var newSortButton: some View {
-    Button {
-      router.reset(to: .preferences)
-    } label: {
-      HStack {
-        Image(systemName: "dice.fill")
-        Text("Novo sorteio")
-      }
-      .font(.headline)
-      .foregroundStyle(AppColors.textPrimary)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 16)
-      .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-    .padding(.horizontal, 20)
-    .padding(.bottom, 8)
-    .background(AppColors.background)
   }
 
   // MARK: - Helpers
