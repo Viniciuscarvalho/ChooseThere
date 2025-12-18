@@ -13,6 +13,7 @@ struct PreferencesView: View {
   @Environment(\.modelContext) private var modelContext
 
   @State private var viewModel: PreferencesViewModel?
+  @State private var showNoResultsAlert = false
 
   private let radiusOptions: [Int?] = [nil, 1, 3, 5, 10]
 
@@ -21,23 +22,26 @@ struct PreferencesView: View {
       AppColors.background.ignoresSafeArea()
 
       if let vm = viewModel {
-        ScrollView {
-          VStack(alignment: .leading, spacing: 24) {
-            headerSection
+        VStack(spacing: 0) {
+          ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+              headerSection
 
-            desiredTagsSection(vm: vm)
+              desiredTagsSection(vm: vm)
 
-            radiusSection(vm: vm)
+              radiusSection(vm: vm)
 
-            priceTierSection(vm: vm)
+              priceTierSection(vm: vm)
 
-            avoidTagsSection(vm: vm)
+              avoidTagsSection(vm: vm)
 
-            Spacer(minLength: 80)
+              // Extra space for TabBar
+              Spacer(minLength: 100)
+            }
+            .padding(20)
           }
-          .padding(20)
-        }
-        .safeAreaInset(edge: .bottom) {
+
+          // Botão de sortear fixo acima da TabBar
           sortButton(vm: vm)
         }
       } else {
@@ -172,9 +176,11 @@ struct PreferencesView: View {
     Button {
       vm.resetSession()
       if let restaurantId = vm.draw() {
-        router.push(.roulette)
         // Store picked id for roulette to consume
         UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
+        router.push(.roulette)
+      } else {
+        showNoResultsAlert = true
       }
     } label: {
       HStack {
@@ -184,13 +190,18 @@ struct PreferencesView: View {
       .font(.headline)
       .foregroundStyle(AppColors.textPrimary)
       .frame(maxWidth: .infinity)
-      .padding(.vertical, 16)
-      .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .padding(.vertical, 14)
+      .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
     .padding(.horizontal, 20)
-    .padding(.bottom, 8)
+    .padding(.vertical, 8)
     .background(AppColors.background)
     .accessibilityLabel("Sortear agora")
+    .alert("Nenhum restaurante encontrado", isPresented: $showNoResultsAlert) {
+      Button("OK", role: .cancel) { }
+    } message: {
+      Text("Não encontramos restaurantes com os filtros selecionados. Tente ajustar as tags ou remover filtros.")
+    }
   }
 
   // MARK: - Helpers

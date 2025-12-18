@@ -43,15 +43,15 @@ struct HistoryDetailView: View {
 
   private func contentView(restaurant: Restaurant, visit: Visit) -> some View {
     VStack(spacing: 0) {
-      // Map
+      // Map - reduced height
       mapSection(restaurant: restaurant)
-        .frame(height: 220)
+        .frame(height: 180)
 
       ScrollView {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
           // Restaurant Card
           restaurantCard(restaurant: restaurant)
-            .padding(.top, -30)
+            .padding(.top, -24)
 
           // Visit Info
           visitInfoCard(visit: visit)
@@ -109,6 +109,7 @@ struct HistoryDetailView: View {
       Text(restaurant.name)
         .font(.title3.weight(.bold))
         .foregroundStyle(AppColors.textPrimary)
+        .fixedSize(horizontal: false, vertical: true) // Allow text to expand vertically
 
       Text(restaurant.category.capitalized)
         .font(.subheadline)
@@ -118,6 +119,7 @@ struct HistoryDetailView: View {
         Label(restaurant.address, systemImage: "mappin.and.ellipse")
           .font(.footnote)
           .foregroundStyle(AppColors.textSecondary)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)

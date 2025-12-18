@@ -1,0 +1,1833 @@
+{
+  "restaurants": [
+    {
+      "id": "izakaya-matsu",
+      "name": "Izakaya Matsu",
+      "category": "bar",
+      "address": "Rua Pedroso de Morais, 403",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "izakaya",
+        "japanese",
+        "drinks"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.561781,
+      "lng": -46.68987
+    },
+    {
+      "id": "tan-tan-bar",
+      "name": "Tan Tan Bar",
+      "category": "bar",
+      "address": "Rua Fradique Coutinho, 153",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "cocktails",
+        "japanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.559794,
+      "lng": -46.686213
+    },
+    {
+      "id": "cava-bar",
+      "name": "Cava Bar",
+      "category": "bar",
+      "address": "Rua Guarará, 565",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "wine"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.528789,
+      "lng": -46.632862
+    },
+    {
+      "id": "de-primeira-botequim",
+      "name": "De Primeira Botequim",
+      "category": "bar",
+      "address": "Rua Aspicuelta, 271",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "botequim",
+        "brasileira"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.559591,
+      "lng": -46.691743
+    },
+    {
+      "id": "sarjeta",
+      "name": "Sarjeta",
+      "category": "bar",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.526693,
+      "lng": -46.659469
+    },
+    {
+      "id": "arlete-bar",
+      "name": "Arlete Bar",
+      "category": "bar",
+      "address": "Rua Vupabussu, 100",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "drinks"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.571771,
+      "lng": -46.626999
+    },
+    {
+      "id": "kudoshiba-isakaya",
+      "name": "Kudoshiba Isakaya",
+      "category": "bar",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "izakaya",
+        "japanese"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.523125,
+      "lng": -46.624388
+    },
+    {
+      "id": "tere",
+      "name": "Terê",
+      "category": "bar",
+      "address": "Rua General Jardim, 427",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.529702,
+      "lng": -46.648754
+    },
+    {
+      "id": "cineclube-cortina",
+      "name": "Cineclube Cortina",
+      "category": "bar",
+      "address": "Rua Araújo, 62",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "nightlife"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.547463,
+      "lng": -46.623668
+    },
+    {
+      "id": "lepos",
+      "name": "Lepos",
+      "category": "bar",
+      "address": "Rua Vicente Leporace, 1078",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.526936,
+      "lng": -46.660632
+    },
+    {
+      "id": "bar-dos-cravos",
+      "name": "Bar dos Cravos",
+      "category": "bar",
+      "address": "Rua Osório Duque Estrada, 41",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.568472,
+      "lng": -46.63318
+    },
+    {
+      "id": "matiz",
+      "name": "Matiz",
+      "category": "bar",
+      "address": "Rua Martins Fontes, 91",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.544481,
+      "lng": -46.613909
+    },
+    {
+      "id": "percussi",
+      "name": "Percussi",
+      "category": "bar",
+      "address": "Rua Bianchi Bertoldi, 109",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.558472,
+      "lng": -46.623979
+    },
+    {
+      "id": "sala-bar",
+      "name": "Sala Bar",
+      "category": "bar",
+      "address": "Rua Fernão Dias, 767",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.558129,
+      "lng": -46.680911
+    },
+    {
+      "id": "riviera-bar",
+      "name": "Riviera Bar",
+      "category": "bar",
+      "address": "Av. Paulista, 2584",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar",
+        "classic"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.563195,
+      "lng": -46.655599
+    },
+    {
+      "id": "kotchi-bar",
+      "name": "Kotchi Bar",
+      "category": "bar",
+      "address": "Rua Padre João Manuel, 1231",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.562766,
+      "lng": -46.658434
+    },
+    {
+      "id": "wanderlust-bar",
+      "name": "Wanderlust Bar",
+      "category": "bar",
+      "address": "Rua da Consolação, 204",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.549767,
+      "lng": -46.658426
+    },
+    {
+      "id": "elevado-bar",
+      "name": "Elevado Bar",
+      "category": "bar",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "bar"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": "https://instagram.com/elevado_bar?utm_medium=copy_link",
+      "lat": -23.527753,
+      "lng": -46.609502
+    },
+    {
+      "id": "hotel-tivoli-brunch",
+      "name": "Hotel Tivoli",
+      "category": "brunch",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brunch",
+        "hotel"
+      ],
+      "notes": "Brunch",
+      "externalLink": null,
+      "lat": -23.538823,
+      "lng": -46.609888
+    },
+    {
+      "id": "mintchi",
+      "name": "Mintchi",
+      "category": "brunch",
+      "address": "Rua Simão Álvares, 114",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.542551,
+      "lng": -46.647589
+    },
+    {
+      "id": "fechado-bar",
+      "name": "Fechado Bar",
+      "category": "brunch",
+      "address": "Rua Bela Cintra, 676",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.557042,
+      "lng": -46.659427
+    },
+    {
+      "id": "duas-terezas",
+      "name": "Duas Terezas",
+      "category": "brunch",
+      "address": "Alameda Lorena, 672",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "pet-friendly"
+      ],
+      "notes": "🦮",
+      "externalLink": null,
+      "lat": -23.572041,
+      "lng": -46.667729
+    },
+    {
+      "id": "padoca-sp",
+      "name": "Padoca SP",
+      "category": "brunch",
+      "address": "Av. Rócio, 250",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "pinned"
+      ],
+      "notes": "📌",
+      "externalLink": null,
+      "lat": -23.553013,
+      "lng": -46.654208
+    },
+    {
+      "id": "casaria",
+      "name": "Casaría",
+      "category": "brunch",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.560382,
+      "lng": -46.604229
+    },
+    {
+      "id": "hey-daisy",
+      "name": "Hey Daisy",
+      "category": "brunch",
+      "address": "Rua Padre Carvalho, 185",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "pinned",
+        "coffee"
+      ],
+      "notes": "📌",
+      "externalLink": null,
+      "lat": -23.55502,
+      "lng": -46.636806
+    },
+    {
+      "id": "zestzing",
+      "name": "Zestzing",
+      "category": "brunch",
+      "address": "Alameda Tietê, 496",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.555418,
+      "lng": -46.629452
+    },
+    {
+      "id": "levena",
+      "name": "Levena",
+      "category": "brunch",
+      "address": "Rua Artur de Azevedo, 495",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.557048,
+      "lng": -46.678202
+    },
+    {
+      "id": "arvore-do-pao",
+      "name": "Árvore do Pão",
+      "category": "brunch",
+      "address": "Rua Frei Caneca, 388",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "pet-friendly",
+        "pinned",
+        "bakery"
+      ],
+      "notes": "🐕📌",
+      "externalLink": null,
+      "lat": -23.572725,
+      "lng": -46.645868
+    },
+    {
+      "id": "pato-rei",
+      "name": "Pato Rei",
+      "category": "brunch",
+      "address": "Rua Ferreira de Araújo, 353",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.525852,
+      "lng": -46.613865
+    },
+    {
+      "id": "rendez-vous",
+      "name": "Rendez Vous",
+      "category": "brunch",
+      "address": "Rua Fradique Coutinho, 179",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "pinned"
+      ],
+      "notes": "📌",
+      "externalLink": null,
+      "lat": -23.560207,
+      "lng": -46.686795
+    },
+    {
+      "id": "qui-o-qua",
+      "name": "Qui o Qua",
+      "category": "brunch",
+      "address": "Alameda Olga, 379",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.545859,
+      "lng": -46.64433
+    },
+    {
+      "id": "sterna-cafe",
+      "name": "Sterna Café",
+      "category": "brunch",
+      "address": "Rua Augusta, 2840",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "coffee",
+        "pinned"
+      ],
+      "notes": "📌",
+      "externalLink": null,
+      "lat": -23.552114,
+      "lng": -46.654686
+    },
+    {
+      "id": "z-deli-centro",
+      "name": "Z Deli Centro",
+      "category": "brunch",
+      "address": "Rua Bento Freitas, 314",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "deli"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.529298,
+      "lng": -46.609761
+    },
+    {
+      "id": "mug-sp",
+      "name": "Mug SP",
+      "category": "brunch",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "breakfast",
+        "brunch",
+        "coffee"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.520799,
+      "lng": -46.60427
+    },
+    {
+      "id": "crime-pastry-shop",
+      "name": "Confeitaria Crime Pastry Shop",
+      "category": "cafe-dessert",
+      "address": "Rua Simão Álvares, 1031",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "coffee",
+        "dessert",
+        "pastry"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.546535,
+      "lng": -46.607935
+    },
+    {
+      "id": "chocolatria",
+      "name": "Chocolatria",
+      "category": "cafe-dessert",
+      "address": "Rua Rita Joana de Souza, 38",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "dessert",
+        "chocolate"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.553889,
+      "lng": -46.613804
+    },
+    {
+      "id": "fabrica-da-dengo",
+      "name": "Fábrica da Dengo",
+      "category": "cafe-dessert",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "dessert",
+        "chocolate"
+      ],
+      "notes": "27/08 (data anotada). Endereço não informado",
+      "externalLink": null,
+      "lat": -23.53626,
+      "lng": -46.656243
+    },
+    {
+      "id": "adora-cafe",
+      "name": "Adora Café",
+      "category": "cafe-dessert",
+      "address": "Rua Dr. Virgílio de Carvalho Pinto, 179",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "coffee",
+        "dessert"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.547664,
+      "lng": -46.661113
+    },
+    {
+      "id": "z-deli-pinheiros",
+      "name": "Z Delli Pinheiros",
+      "category": "burger",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.52144,
+      "lng": -46.635548
+    },
+    {
+      "id": "dck-burguer",
+      "name": "DCK Burguer",
+      "category": "burger",
+      "address": "Rua Demétrio Ribeiro, 605",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.572965,
+      "lng": -46.626202
+    },
+    {
+      "id": "big-kahuna",
+      "name": "Big Kahuna",
+      "category": "burger",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.522659,
+      "lng": -46.646484
+    },
+    {
+      "id": "buzina-burger",
+      "name": "Buzina Burger",
+      "category": "burger",
+      "address": "Rua Padre Carvalho, 30",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.55659,
+      "lng": -46.613675
+    },
+    {
+      "id": "la-borratxeria",
+      "name": "La Borratxeria",
+      "category": "burger",
+      "address": "Rua João Moura, 539",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.555657,
+      "lng": -46.694243
+    },
+    {
+      "id": "holy-burger",
+      "name": "Holy Burger",
+      "category": "burger",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.538793,
+      "lng": -46.623259
+    },
+    {
+      "id": "the-burger-map",
+      "name": "The Burger Map",
+      "category": "burger",
+      "address": "Rua das Aroeiras, 442",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.540019,
+      "lng": -46.637082
+    },
+    {
+      "id": "grindhouse-braserito",
+      "name": "Grindhouse Braserito",
+      "category": "burger",
+      "address": "Rua Lisboa, 346",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.533307,
+      "lng": -46.639329
+    },
+    {
+      "id": "pao-com-carne",
+      "name": "Pão com Carne",
+      "category": "burger",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "burger"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.57485,
+      "lng": -46.6405
+    },
+    {
+      "id": "mocoto",
+      "name": "Mocotó",
+      "category": "brasileira",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "tradicional"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.55403,
+      "lng": -46.65684
+    },
+    {
+      "id": "tordesilhas",
+      "name": "Tordesilhas",
+      "category": "brasileira",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira"
+      ],
+      "notes": "22/10/2023 (data anotada). Endereço não informado",
+      "externalLink": null,
+      "lat": -23.567937,
+      "lng": -46.646494
+    },
+    {
+      "id": "balaio",
+      "name": "Balaio",
+      "category": "brasileira",
+      "address": "Av. Paulista, 242",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.564113,
+      "lng": -46.654425
+    },
+    {
+      "id": "cora-sp",
+      "name": "Cora SP",
+      "category": "brasileira",
+      "address": "Rua Amaral Gurgel, 344, 6º andar",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.576846,
+      "lng": -46.632932
+    },
+    {
+      "id": "hospedaria-sp",
+      "name": "HospedariaSP",
+      "category": "brasileira",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": "https://www.instagram.com/reel/Ca5c4uYpdaj/?utm_medium=copy_link",
+      "lat": -23.535783,
+      "lng": -46.65331
+    },
+    {
+      "id": "preto-cozinha",
+      "name": "Preto Cozinha",
+      "category": "brasileira",
+      "address": "Rua Fradique Coutinho, 276",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.560671,
+      "lng": -46.685693
+    },
+    {
+      "id": "cuscuz-da-irina",
+      "name": "Cuscuz da Irina",
+      "category": "brasileira",
+      "address": "Rua Ipero, 47",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "nordestina"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.561383,
+      "lng": -46.657104
+    },
+    {
+      "id": "cuscuzlicia",
+      "name": "Cuscuzlicia",
+      "category": "brasileira",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "nordestina"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.571863,
+      "lng": -46.603867
+    },
+    {
+      "id": "solar-da-republica",
+      "name": "Solar da República",
+      "category": "brasileira",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.551821,
+      "lng": -46.661017
+    },
+    {
+      "id": "aecozinha",
+      "name": "Aecozinha",
+      "category": "brasileira",
+      "address": "Vila Marina",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "Endereço parcial (bairro/região)",
+      "externalLink": null,
+      "lat": -23.546262,
+      "lng": -46.659035
+    },
+    {
+      "id": "broca",
+      "name": "Broca",
+      "category": "brasileira",
+      "address": "Rua Aspicuelta, 429",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.559826,
+      "lng": -46.693275
+    },
+    {
+      "id": "deus-mansion",
+      "name": "Deus Mansion",
+      "category": "brasileira",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.540387,
+      "lng": -46.64732
+    },
+    {
+      "id": "bosco",
+      "name": "Bosco",
+      "category": "brasileira",
+      "address": "Rua João Moura, 976",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "16/12/2023 (data anotada)",
+      "externalLink": null,
+      "lat": -23.558505,
+      "lng": -46.692213
+    },
+    {
+      "id": "manarillo",
+      "name": "Manarillo",
+      "category": "brasileira",
+      "address": "Rua Professor Innocent, 507",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.536183,
+      "lng": -46.611282
+    },
+    {
+      "id": "cais",
+      "name": "Cais",
+      "category": "brasileira",
+      "address": "Rua Fidalga, 314",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.554292,
+      "lng": -46.689526
+    },
+    {
+      "id": "chou",
+      "name": "Chou",
+      "category": "brasileira",
+      "address": "Rua Mateus Grou, 345",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.55719,
+      "lng": -46.691527
+    },
+    {
+      "id": "amazonia-soul",
+      "name": "Amazonia Soul",
+      "category": "brasileira",
+      "address": "Rua Áurea, 361",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "regional"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.542669,
+      "lng": -46.662614
+    },
+    {
+      "id": "ian",
+      "name": "Ian",
+      "category": "brasileira",
+      "address": "Rua Nova York, 341",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.534128,
+      "lng": -46.661933
+    },
+    {
+      "id": "cozinha-212",
+      "name": "Cozinha 212",
+      "category": "brasileira",
+      "address": "Rua dos Pinheiros, 174",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.565019,
+      "lng": -46.693505
+    },
+    {
+      "id": "me-gusta",
+      "name": "Me Gusta",
+      "category": "brasileira",
+      "address": "Rua Bela Cintra, 1551",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.558559,
+      "lng": -46.659584
+    },
+    {
+      "id": "metzi",
+      "name": "Metzi",
+      "category": "brasileira",
+      "address": "Rua João Moura, 861",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.556764,
+      "lng": -46.692122
+    },
+    {
+      "id": "tau-cozinha",
+      "name": "Tau Cozinha",
+      "category": "brasileira",
+      "address": "Rua Harmonia, 797",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "brasileira",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.55247,
+      "lng": -46.693343
+    },
+    {
+      "id": "pingy-yang",
+      "name": "Pingy Yang",
+      "category": "japanese",
+      "address": "Rua Dr. Melo Alves, 767",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "26/04/2025 (data anotada)",
+      "externalLink": null,
+      "lat": -23.576938,
+      "lng": -46.658793
+    },
+    {
+      "id": "tamashi-ramen",
+      "name": "Tamashi Ramen",
+      "category": "japanese",
+      "address": "R. Mourato Coelho, 53",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "ramen"
+      ],
+      "notes": "28/06/2025 (data anotada)",
+      "externalLink": null,
+      "lat": -23.56346,
+      "lng": -46.688181
+    },
+    {
+      "id": "oguro-sushi",
+      "name": "Oguro Sushi",
+      "category": "japanese",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "sushi"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.539723,
+      "lng": -46.612738
+    },
+    {
+      "id": "kotori",
+      "name": "Kotori",
+      "category": "japanese",
+      "address": "Rua Cônego Eugênio Leite, 639",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.529978,
+      "lng": -46.631274
+    },
+    {
+      "id": "kuromoon",
+      "name": "Kuromoon",
+      "category": "japanese",
+      "address": "Rua Teixeira da Silva, 596",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.559636,
+      "lng": -46.636714
+    },
+    {
+      "id": "mugui",
+      "name": "Mugui",
+      "category": "japanese",
+      "address": "Rua da Glória, 111",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.538506,
+      "lng": -46.623391
+    },
+    {
+      "id": "yakitori-boteco-raiz",
+      "name": "Yakitori (boteco raiz japonês)",
+      "category": "japanese",
+      "address": "Rua Carinás, 93",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "yakitori",
+        "boteco"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.559236,
+      "lng": -46.61239
+    },
+    {
+      "id": "cho-sun-gal-bi",
+      "name": "Cho Sun Gal Bi",
+      "category": "japanese",
+      "address": "Rua da Glória, 663",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "korean"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.576771,
+      "lng": -46.611738
+    },
+    {
+      "id": "jojo-ramen",
+      "name": "Jojo Ramen",
+      "category": "japanese",
+      "address": "Rua Rafael de Barros, 262",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "ramen"
+      ],
+      "notes": "🍜",
+      "externalLink": null,
+      "lat": -23.564038,
+      "lng": -46.638701
+    },
+    {
+      "id": "hira-ramen",
+      "name": "Hirá Ramen",
+      "category": "japanese",
+      "address": "Rua Fradique Coutinho, 1240",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "ramen"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.560028,
+      "lng": -46.687801
+    },
+    {
+      "id": "barikote-lamen",
+      "name": "Barikote Lamen",
+      "category": "japanese",
+      "address": "Rua José Maria Lisboa, 118",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "ramen"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.527535,
+      "lng": -46.605504
+    },
+    {
+      "id": "koya-88",
+      "name": "Koya 88",
+      "category": "japanese",
+      "address": "Rua Jesuíno Pascoal, 21",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.548834,
+      "lng": -46.638483
+    },
+    {
+      "id": "quito-quito-izakaya",
+      "name": "Quito Quito Izakaya",
+      "category": "japanese",
+      "address": "Alameda Campinas, 1179",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese",
+        "izakaya"
+      ],
+      "notes": "🏮",
+      "externalLink": null,
+      "lat": -23.568032,
+      "lng": -46.658168
+    },
+    {
+      "id": "yong-dim-sum-bar",
+      "name": "Yong Dim Sum Bar",
+      "category": "japanese",
+      "address": "Rua Fradique Coutinho, 61",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "dim-sum",
+        "chinese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.5629,
+      "lng": -46.686711
+    },
+    {
+      "id": "momokuri",
+      "name": "Momokuri",
+      "category": "japanese",
+      "address": "Rua Vupabussu, 91",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.544832,
+      "lng": -46.606347
+    },
+    {
+      "id": "mapu-taiwanes",
+      "name": "Mapu (Taiwanês)",
+      "category": "japanese",
+      "address": "Rua Áurea, 267",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "asian",
+        "taiwanese"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.542158,
+      "lng": -46.661107
+    },
+    {
+      "id": "gurume-barra-da-tijuca",
+      "name": "Gurumê",
+      "category": "japanese",
+      "address": "Av. das Américas, 7777, Barra da Tijuca",
+      "city": "Rio de Janeiro",
+      "state": "RJ",
+      "tags": [
+        "asian",
+        "japanese"
+      ],
+      "notes": "15/11/2023 (data anotada)",
+      "externalLink": null,
+      "lat": -23.0002,
+      "lng": -43.3656
+    },
+    {
+      "id": "pizzaria-veridiana",
+      "name": "Pizzaria Veridiana",
+      "category": "italian",
+      "address": "Rua José Maria Lisboa, 493",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian",
+        "pizza"
+      ],
+      "notes": "02/09 (data anotada)",
+      "externalLink": null,
+      "lat": -23.569271,
+      "lng": -46.651979
+    },
+    {
+      "id": "piccini-cucina",
+      "name": "Piccini Cucina",
+      "category": "italian",
+      "address": "Rua Vitória Fasano, 49",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "26/11/2023 (data anotada)",
+      "externalLink": null,
+      "lat": -23.578,
+      "lng": -46.6437
+    },
+    {
+      "id": "la-braciera",
+      "name": "La Braciera",
+      "category": "italian",
+      "address": "Alameda Lorena, 1040",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian",
+        "pizza"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.573313,
+      "lng": -46.666918
+    },
+    {
+      "id": "tontoni-trattoria",
+      "name": "Tontoni Trattoria",
+      "category": "italian",
+      "address": "Alameda Joaquim Eugênio de Lima, 1537",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.577322,
+      "lng": -46.659793
+    },
+    {
+      "id": "tappo-trattoria",
+      "name": "Tappo Trattoria",
+      "category": "italian",
+      "address": "Rua Alagoas, 475",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.52522,
+      "lng": -46.634172
+    },
+    {
+      "id": "paradiso-cucina",
+      "name": "Paradiso Cucina",
+      "category": "italian",
+      "address": "Rua Apeninos, 747",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.562075,
+      "lng": -46.615386
+    },
+    {
+      "id": "familia-mancini",
+      "name": "Família Mancini",
+      "category": "italian",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.541339,
+      "lng": -46.638514
+    },
+    {
+      "id": "nona-rosa",
+      "name": "Nona Rosa",
+      "category": "italian",
+      "address": "Rua Padre João Manuel, 950",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.561779,
+      "lng": -46.661449
+    },
+    {
+      "id": "fiaschetteria-del-capitale",
+      "name": "Fiaschetteria del Capitale",
+      "category": "italian",
+      "address": "Rua Barão Capanema, 214",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.533757,
+      "lng": -46.645833
+    },
+    {
+      "id": "helena-di-napoli",
+      "name": "Helena di Napoli",
+      "category": "italian",
+      "address": "Rua Joaquim Távora, 1223",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.57253,
+      "lng": -46.641899
+    },
+    {
+      "id": "pappagallo-cucina",
+      "name": "Pappagallo Cucina",
+      "category": "italian",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.566581,
+      "lng": -46.621894
+    },
+    {
+      "id": "manioca-shopping-iguatemi",
+      "name": "Manioca - Shopping Iguatemi",
+      "category": "italian",
+      "address": "Shopping Iguatemi",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian",
+        "shopping"
+      ],
+      "notes": "Local: Shopping Iguatemi",
+      "externalLink": null,
+      "lat": -23.558388,
+      "lng": -46.635477
+    },
+    {
+      "id": "terraco-italia",
+      "name": "Terraço Itália",
+      "category": "italian",
+      "address": "Av. Ipiranga, 344 – 41º/42º andar",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "italian",
+        "view",
+        "fine-dining"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.537363,
+      "lng": -46.639061
+    },
+    {
+      "id": "bubbele-arabe",
+      "name": "Bubbele Árabe",
+      "category": "arab-mediterranean",
+      "address": "R. Francisco Leitão, 77",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "arab",
+        "mediterranean"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.556349,
+      "lng": -46.610146
+    },
+    {
+      "id": "make-hommus",
+      "name": "Make Hommus",
+      "category": "arab-mediterranean",
+      "address": "Rua Oscar Freire, 2270",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "arab",
+        "mediterranean"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.565235,
+      "lng": -46.667696
+    },
+    {
+      "id": "shuk",
+      "name": "Shuk",
+      "category": "arab-mediterranean",
+      "address": "Rua Ferreira de Araújo, 385",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "mediterranean"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.527927,
+      "lng": -46.636747
+    },
+    {
+      "id": "spot",
+      "name": "Spot",
+      "category": "contemporary-fine",
+      "address": "Alameda Ministro Rocha Azevedo, 72",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary",
+        "classic"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.578591,
+      "lng": -46.626667
+    },
+    {
+      "id": "mila",
+      "name": "Mila",
+      "category": "contemporary-fine",
+      "address": "Rua Bandeira Paulista, 1096",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.563678,
+      "lng": -46.652624
+    },
+    {
+      "id": "augustus",
+      "name": "Augustus",
+      "category": "contemporary-fine",
+      "address": "Rua Américo Brasiliense, 2180",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.543778,
+      "lng": -46.654733
+    },
+    {
+      "id": "de-segunda",
+      "name": "De Segunda",
+      "category": "contemporary-fine",
+      "address": "Rua Professor Tamandaré Toledo, 160",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.54085,
+      "lng": -46.613777
+    },
+    {
+      "id": "nunes-parrilla",
+      "name": "Nunes Parrilla",
+      "category": "contemporary-fine",
+      "address": "Rua Padre de Carvalho, 231",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "grill",
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.545971,
+      "lng": -46.629162
+    },
+    {
+      "id": "restaurante-azulejo",
+      "name": "Restaurante Azulejo",
+      "category": "contemporary-fine",
+      "address": "Rua Caraíbas, 871",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.572472,
+      "lng": -46.632733
+    },
+    {
+      "id": "pepino-cuccina",
+      "name": "Pepino Cuccina",
+      "category": "contemporary-fine",
+      "address": "Rua João Cachoeira, 175",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary",
+        "italian-inspired"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.535089,
+      "lng": -46.637551
+    },
+    {
+      "id": "kroztaa",
+      "name": "Kroztaa",
+      "category": "contemporary-fine",
+      "address": "Rua Jesuíno Pascoal, 39 - Vila Buarque",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.541341,
+      "lng": -46.648754
+    },
+    {
+      "id": "freeze",
+      "name": "Freeze",
+      "category": "contemporary-fine",
+      "address": "Rua Clodomiro Amazonas, 469",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.560127,
+      "lng": -46.62272
+    },
+    {
+      "id": "espaco-priceless-mastercard-notie-abaru",
+      "name": "Espaço Priceless Mastercard (NOTIÊ e ABARU – Chef Onildo Rocha)",
+      "category": "contemporary-fine",
+      "address": "",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary",
+        "fine-dining"
+      ],
+      "notes": "Endereço não informado",
+      "externalLink": null,
+      "lat": -23.534543,
+      "lng": -46.6125
+    },
+    {
+      "id": "handz",
+      "name": "Handz",
+      "category": "contemporary-fine",
+      "address": "Rua Leopoldo Couto de Magalhães Júnior, 129",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.528914,
+      "lng": -46.613225
+    },
+    {
+      "id": "huevos-de-oro",
+      "name": "Huevos de Oro",
+      "category": "contemporary-fine",
+      "address": "Av. Pedroso de Morais, 267",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.565057,
+      "lng": -46.686823
+    },
+    {
+      "id": "el-tranvia",
+      "name": "El Tranvía",
+      "category": "contemporary-fine",
+      "address": "Rua Leopoldo Couto Magalhães, 1372",
+      "city": "São Paulo",
+      "state": "SP",
+      "tags": [
+        "contemporary",
+        "steakhouse"
+      ],
+      "notes": "",
+      "externalLink": null,
+      "lat": -23.548991,
+      "lng": -46.625137
+    }
+  ]
+}

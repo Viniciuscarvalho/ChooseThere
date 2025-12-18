@@ -4,10 +4,10 @@ import Observation
 @MainActor
 @Observable
 final class AppRouter {
-  private(set) var stack: [AppRoute] = [.preferences]
+  private(set) var stack: [AppRoute] = [.onboarding]
 
   var current: AppRoute {
-    stack.last ?? .preferences
+    stack.last ?? .onboarding
   }
 
   func reset(to route: AppRoute) {
@@ -21,6 +21,16 @@ final class AppRouter {
   func pop() {
     guard stack.count > 1 else { return }
     stack.removeLast()
+  }
+
+  /// Navega para MainTabs e push para uma rota específica
+  func navigateFromTabs(to route: AppRoute) {
+    stack = [.mainTabs, route]
+  }
+
+  /// Volta para MainTabs
+  func backToTabs() {
+    stack = [.mainTabs]
   }
 }
 
