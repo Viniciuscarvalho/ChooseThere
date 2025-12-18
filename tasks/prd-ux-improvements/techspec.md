@@ -191,3 +191,4 @@ A `MainTabView` é independente do Router - ela gerencia apenas a troca de abas.
 - `ChooseThere/Presentation/ViewModels/RestaurantListViewModel.swift`
 - `ChooseThere/Application/OnboardingStorage.swift`
 
+

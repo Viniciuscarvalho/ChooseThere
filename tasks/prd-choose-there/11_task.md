@@ -63,3 +63,4 @@ Garantir qualidade e consistência do app na V1, cobrindo regras de sorteio, per
 - `tasks/prd-choose-there/techspec.md`
 - `.cursor/rules/code-standards.md`
 
+

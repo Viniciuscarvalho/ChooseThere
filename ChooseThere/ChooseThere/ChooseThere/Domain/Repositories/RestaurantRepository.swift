@@ -17,3 +17,4 @@ protocol RestaurantRepository {
   func setFavorite(id: String, isFavorite: Bool) throws
 }
 
+

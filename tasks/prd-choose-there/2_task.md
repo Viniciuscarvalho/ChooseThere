@@ -63,3 +63,4 @@ Criar os modelos persistidos do app e atualizar o `ModelContainer` para suportar
 - `tasks/prd-choose-there/techspec.md`
 - `ChooseThere/ChooseThere/ChooseThereApp.swift`
 
+

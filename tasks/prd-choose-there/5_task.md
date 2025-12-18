@@ -59,3 +59,4 @@ Criar navegação customizada e explícita, evitando `NavigationStack`, para red
 ## Arquivos relevantes
 - `tasks/prd-choose-there/techspec.md`
 
+

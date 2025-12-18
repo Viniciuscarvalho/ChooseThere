@@ -62,3 +62,4 @@ Apresentar o restaurante escolhido com mapa e ações práticas, aplicando ident
 ## Arquivos relevantes
 - `tasks/prd-choose-there/techspec.md`
 
+
