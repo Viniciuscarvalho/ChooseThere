@@ -194,7 +194,7 @@ struct RestaurantListView: View {
 
   private func restaurantRow(restaurant: Restaurant, vm: RestaurantListViewModel) -> some View {
     Button {
-      router.push(.result(restaurantId: restaurant.id))
+      router.pushOverlay(.result(restaurantId: restaurant.id))
     } label: {
       HStack(spacing: 14) {
         // Category icon
@@ -210,10 +210,17 @@ struct RestaurantListView: View {
 
         // Info
         VStack(alignment: .leading, spacing: 4) {
-          Text(restaurant.name)
-            .font(.body.weight(.semibold))
-            .foregroundStyle(AppColors.textPrimary)
-            .lineLimit(1)
+          HStack {
+            Text(restaurant.name)
+              .font(.body.weight(.semibold))
+              .foregroundStyle(AppColors.textPrimary)
+              .lineLimit(1)
+            
+            // Rating badge (se tiver avaliações)
+            if restaurant.hasRatings {
+              RatingBadge(restaurant: restaurant, style: .compact)
+            }
+          }
 
           HStack(spacing: 4) {
             Text(formatCategory(restaurant.category))
@@ -249,7 +256,7 @@ struct RestaurantListView: View {
       .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(restaurant.name), \(formatCategory(restaurant.category))")
+    .accessibilityLabel("\(restaurant.name), \(formatCategory(restaurant.category))\(restaurant.hasRatings ? ", avaliação \(String(format: "%.1f", restaurant.ratingAverage))" : "")")
     .accessibilityHint("Toque para ver detalhes")
   }
 

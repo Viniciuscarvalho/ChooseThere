@@ -179,7 +179,7 @@ struct OnboardingView: View {
 
   private func completeOnboarding() {
     OnboardingStorage.markAsSeen()
-    router.reset(to: .mainTabs)
+    router.setMainRoute(.mainTabs)
   }
 }
 

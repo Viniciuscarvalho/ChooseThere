@@ -75,33 +75,38 @@ struct ResultView: View {
   // MARK: - Back Button
   
   private var backButton: some View {
-    Button {
-      router.pop()
-    } label: {
-      Image(systemName: "chevron.left")
-        .font(.system(size: 16, weight: .semibold))
-        .foregroundStyle(AppColors.textPrimary)
-        .frame(width: 40, height: 40)
-        .background(.ultraThinMaterial, in: Circle())
-        .shadow(color: Color.black.opacity(0.1), radius: 4, y: 2)
-    }
-    .accessibilityLabel("Voltar")
+    BackButton(action: { router.popOverlay() }, style: .onMap)
   }
 
   // MARK: - Map
 
   private func mapSection(restaurant: Restaurant, vm: ResultViewModel) -> some View {
-    Map(position: $cameraPosition) {
+    let coordinate = CLLocationCoordinate2D(latitude: restaurant.lat, longitude: restaurant.lng)
+    
+    return Map(position: $cameraPosition) {
       Annotation(
         restaurant.name,
-        coordinate: vm.coordinate ?? CLLocationCoordinate2D(latitude: -23.55, longitude: -46.63)
+        coordinate: coordinate
       ) {
         pinView(isFavorite: restaurant.isFavorite)
       }
     }
     .mapStyle(.standard(elevation: .realistic))
     .onAppear {
-      cameraPosition = .region(vm.mapRegion)
+      // Centralizar no pin usando as coordenadas do restaurante
+      let region = MKCoordinateRegion(
+        center: coordinate,
+        span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+      )
+      cameraPosition = .region(region)
+    }
+    .onChange(of: restaurant.lat) { _, _ in
+      // Atualizar câmera se coordenadas mudarem (ex: após enriquecimento)
+      let region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: restaurant.lat, longitude: restaurant.lng),
+        span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+      )
+      cameraPosition = .region(region)
     }
   }
 
@@ -147,6 +152,9 @@ struct ResultView: View {
 
       Divider()
         .background(AppColors.divider)
+      
+      // Rating section
+      RatingBadge(restaurant: restaurant, style: .full)
 
       HStack(spacing: 16) {
         Label(restaurant.city, systemImage: "mappin.and.ellipse")
@@ -195,7 +203,7 @@ struct ResultView: View {
       HStack(spacing: 12) {
         // Rate
         Button {
-          router.push(.rating(restaurantId: restaurantId))
+          router.pushOverlay(.rating(restaurantId: restaurantId))
         } label: {
           HStack {
             Image(systemName: "star.fill")
@@ -210,8 +218,7 @@ struct ResultView: View {
 
         // Draw again
         Button {
-          router.pop()
-          router.push(.roulette)
+          router.replaceOverlay(with: .roulette)
         } label: {
           HStack {
             Image(systemName: "arrow.clockwise")

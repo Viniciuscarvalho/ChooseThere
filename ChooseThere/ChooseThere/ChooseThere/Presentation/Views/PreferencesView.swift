@@ -14,6 +14,8 @@ struct PreferencesView: View {
 
   @State private var viewModel: PreferencesViewModel?
   @State private var showNoResultsAlert = false
+  @State private var enrichmentManager = LocationEnrichmentManager()
+  @State private var showToolsSection = false
 
   private let radiusOptions: [Int?] = [nil, 1, 3, 5, 10]
 
@@ -32,8 +34,13 @@ struct PreferencesView: View {
               radiusSection(vm: vm)
 
               priceTierSection(vm: vm)
+              
+              ratingPrioritySection(vm: vm)
 
               avoidTagsSection(vm: vm)
+              
+              // Seção de ferramentas (colapsável)
+              toolsSection
 
               // Extra space at bottom
               Spacer(minLength: 20)
@@ -156,6 +163,44 @@ struct PreferencesView: View {
       }
     }
   }
+  
+  private func ratingPrioritySection(vm: PreferencesViewModel) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(spacing: 6) {
+        Image(systemName: "star.fill")
+          .font(.system(size: 14))
+          .foregroundStyle(AppColors.primary)
+        
+        Text("Bem Avaliados")
+          .font(.headline)
+          .foregroundStyle(AppColors.textPrimary)
+      }
+
+      HStack(spacing: 8) {
+        ForEach(RatingPriority.allCases) { priority in
+          let isSelected = vm.ratingPriority == priority
+          Button {
+            vm.ratingPriority = priority
+          } label: {
+            Text(priority.label)
+              .font(.subheadline.weight(.medium))
+              .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
+              .padding(.horizontal, 14)
+              .padding(.vertical, 8)
+              .background(
+                isSelected ? AppColors.primary : AppColors.surface,
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                  .stroke(isSelected ? AppColors.primary : AppColors.divider, lineWidth: 1)
+              )
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
 
   private func avoidTagsSection(vm: PreferencesViewModel) -> some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -175,6 +220,104 @@ struct PreferencesView: View {
       }
     }
   }
+  
+  // MARK: - Tools Section
+  
+  private var toolsSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      // Header colapsável
+      Button {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+          showToolsSection.toggle()
+        }
+      } label: {
+        HStack {
+          Image(systemName: "wrench.and.screwdriver")
+            .font(.system(size: 16, weight: .medium))
+          
+          Text("Ferramentas")
+            .font(.headline)
+          
+          Spacer()
+          
+          Image(systemName: showToolsSection ? "chevron.up" : "chevron.down")
+            .font(.system(size: 14, weight: .medium))
+        }
+        .foregroundStyle(AppColors.textSecondary)
+      }
+      .buttonStyle(.plain)
+      
+      if showToolsSection {
+        VStack(spacing: 12) {
+          // Botão de enriquecer localizações
+          enrichLocationButton
+        }
+        .transition(.opacity.combined(with: .move(edge: .top)))
+      }
+    }
+    .padding(16)
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+  
+  private var enrichLocationButton: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack {
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Atualizar Localizações")
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(AppColors.textPrimary)
+          
+          Text(enrichmentManager.statusMessage)
+            .font(.caption)
+            .foregroundStyle(AppColors.textSecondary)
+        }
+        
+        Spacer()
+        
+        if enrichmentManager.isRunning {
+          ProgressView()
+            .tint(AppColors.primary)
+        } else {
+          Button {
+            Task {
+              await enrichmentManager.startEnrichment()
+            }
+          } label: {
+            Image(systemName: "arrow.triangle.2.circlepath")
+              .font(.system(size: 18, weight: .medium))
+              .foregroundStyle(AppColors.primary)
+              .frame(width: 36, height: 36)
+              .background(AppColors.primary.opacity(0.1), in: Circle())
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      
+      // Barra de progresso
+      if enrichmentManager.isRunning {
+        ProgressView(value: enrichmentManager.progress)
+          .tint(AppColors.success)
+          .animation(.easeInOut, value: enrichmentManager.progress)
+      }
+      
+      // Resultado do último batch
+      if let result = enrichmentManager.lastResult, !enrichmentManager.isRunning {
+        HStack(spacing: 12) {
+          Label("\(result.success)", systemImage: "checkmark.circle.fill")
+            .font(.caption)
+            .foregroundStyle(AppColors.success)
+          
+          Label("\(result.failed)", systemImage: "xmark.circle.fill")
+            .font(.caption)
+            .foregroundStyle(AppColors.error)
+          
+          Label("\(result.skipped)", systemImage: "arrow.right.circle.fill")
+            .font(.caption)
+            .foregroundStyle(AppColors.textSecondary)
+        }
+      }
+    }
+  }
 
   private func sortButton(vm: PreferencesViewModel) -> some View {
     Button {
@@ -182,7 +325,7 @@ struct PreferencesView: View {
       if let restaurantId = vm.draw() {
         // Store picked id for roulette to consume
         UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
-        router.push(.roulette)
+        router.pushOverlay(.roulette)
       } else {
         showNoResultsAlert = true
       }
@@ -221,6 +364,9 @@ struct PreferencesView: View {
     let vm = PreferencesViewModel(restaurantRepository: repo)
     vm.loadTags()
     viewModel = vm
+    
+    // Configurar o manager de enriquecimento
+    enrichmentManager.configure(with: repo)
   }
 }
 

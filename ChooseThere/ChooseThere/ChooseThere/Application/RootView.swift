@@ -14,23 +14,11 @@ struct RootView: View {
 
   var body: some View {
     Group {
-      switch router.current {
+      switch router.mainRoute {
       case .onboarding:
         OnboardingView()
       case .mainTabs:
         MainTabView()
-      case .preferences:
-        PreferencesView()
-      case .roulette:
-        RouletteView()
-      case .result(let restaurantId):
-        ResultView(restaurantId: restaurantId)
-      case .rating(let restaurantId):
-        RatingView(restaurantId: restaurantId)
-      case .history:
-        HistoryView()
-      case .historyDetail(let restaurantId, let visitId):
-        HistoryDetailView(restaurantId: restaurantId, visitId: visitId)
       }
     }
     .onAppear {
@@ -44,9 +32,9 @@ struct RootView: View {
 
     // Decide initial route based on onboarding status
     if OnboardingStorage.hasSeenOnboarding {
-      router.reset(to: .mainTabs)
+      router.setMainRoute(.mainTabs)
     } else {
-      router.reset(to: .onboarding)
+      router.setMainRoute(.onboarding)
     }
   }
 }

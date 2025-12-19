@@ -36,10 +36,16 @@ final class RatingViewModel {
 
   let restaurantId: String
   private let visitRepository: any VisitRepository
+  private let ratingAggregator: RestaurantRatingAggregator?
 
-  init(restaurantId: String, visitRepository: any VisitRepository) {
+  init(
+    restaurantId: String,
+    visitRepository: any VisitRepository,
+    ratingAggregator: RestaurantRatingAggregator? = nil
+  ) {
     self.restaurantId = restaurantId
     self.visitRepository = visitRepository
+    self.ratingAggregator = ratingAggregator
   }
 
   // MARK: - Actions
@@ -78,6 +84,10 @@ final class RatingViewModel {
 
     do {
       try visitRepository.add(visit)
+      
+      // Atualizar snapshot de rating do restaurante
+      ratingAggregator?.updateSnapshot(for: restaurantId)
+      
       isSaving = false
       return true
     } catch {
@@ -87,5 +97,6 @@ final class RatingViewModel {
     }
   }
 }
+
 
 

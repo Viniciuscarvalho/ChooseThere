@@ -60,20 +60,9 @@ final class RestaurantListViewModel {
       try restaurantRepository.setFavorite(id: restaurant.id, isFavorite: newFavoriteStatus)
       // Refresh the list
       if let index = restaurants.firstIndex(where: { $0.id == restaurant.id }) {
-        restaurants[index] = Restaurant(
-          id: restaurant.id,
-          name: restaurant.name,
-          category: restaurant.category,
-          address: restaurant.address,
-          city: restaurant.city,
-          state: restaurant.state,
-          tags: restaurant.tags,
-          notes: restaurant.notes,
-          externalLink: restaurant.externalLink,
-          lat: restaurant.lat,
-          lng: restaurant.lng,
-          isFavorite: newFavoriteStatus
-        )
+        var updated = restaurant
+        updated.isFavorite = newFavoriteStatus
+        restaurants[index] = updated
       }
       applyFilters()
     } catch {

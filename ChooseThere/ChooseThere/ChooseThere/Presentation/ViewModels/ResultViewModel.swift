@@ -26,6 +26,10 @@ final class ResultViewModel {
   private(set) var restaurant: Restaurant?
   private(set) var isLoading = true
   private(set) var errorMessage: String?
+  
+  /// Estado do enriquecimento de localização
+  private(set) var isEnrichingLocation = false
+  private(set) var locationEnriched = false
 
   var isFavorite: Bool {
     restaurant?.isFavorite ?? false
@@ -54,10 +58,18 @@ final class ResultViewModel {
 
   private let restaurantRepository: any RestaurantRepository
   private let restaurantId: String
+  private var enrichmentService: RestaurantLocationEnrichmentService?
 
   init(restaurantId: String, restaurantRepository: any RestaurantRepository) {
     self.restaurantId = restaurantId
     self.restaurantRepository = restaurantRepository
+    
+    // Criar serviço de enriquecimento
+    let placeResolver = MapKitPlaceResolver()
+    self.enrichmentService = RestaurantLocationEnrichmentService(
+      placeResolver: placeResolver,
+      restaurantRepository: restaurantRepository
+    )
   }
 
   // MARK: - Actions
@@ -69,11 +81,47 @@ final class ResultViewModel {
       restaurant = try restaurantRepository.fetch(id: restaurantId)
       if restaurant == nil {
         errorMessage = "Restaurante não encontrado."
+      } else {
+        // Verificar se precisa enriquecer localização em background
+        Task {
+          await enrichLocationIfNeeded()
+        }
       }
     } catch {
       errorMessage = "Erro ao carregar restaurante."
     }
     isLoading = false
+  }
+  
+  /// Enriquece a localização do restaurante se ainda não foi resolvida
+  private func enrichLocationIfNeeded() async {
+    guard let r = restaurant, !r.applePlaceResolved else {
+      locationEnriched = restaurant?.applePlaceResolved ?? false
+      return
+    }
+    
+    isEnrichingLocation = true
+    
+    if let service = enrichmentService {
+      let result = await service.resolve(restaurantId: restaurantId)
+      
+      switch result {
+      case .success(let lat, let lng, _, _):
+        // Recarregar restaurante para obter dados atualizados
+        if let updated = try? restaurantRepository.fetch(id: restaurantId) {
+          restaurant = updated
+          locationEnriched = true
+        }
+        
+      case .alreadyResolved, .cacheHit:
+        locationEnriched = true
+        
+      case .notFound, .failed:
+        locationEnriched = false
+      }
+    }
+    
+    isEnrichingLocation = false
   }
 
   func toggleFavorite() {

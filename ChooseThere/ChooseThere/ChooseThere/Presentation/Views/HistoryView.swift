@@ -107,7 +107,7 @@ struct HistoryView: View {
 
   private func visitCard(visit: Visit, restaurant: Restaurant) -> some View {
     Button {
-      router.push(.historyDetail(restaurantId: restaurant.id, visitId: visit.id))
+      router.pushOverlay(.historyDetail(restaurantId: restaurant.id, visitId: visit.id))
     } label: {
       HStack(spacing: 14) {
         // Icon

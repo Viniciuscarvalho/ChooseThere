@@ -20,6 +20,7 @@ struct HistoryDetailView: View {
   @State private var visit: Visit?
   @State private var cameraPosition: MapCameraPosition = .automatic
   @State private var isLoading = true
+  @State private var isEnrichingLocation = false
 
   var body: some View {
     ZStack {
@@ -87,9 +88,11 @@ struct HistoryDetailView: View {
   // MARK: - Map
 
   private func mapSection(restaurant: Restaurant) -> some View {
-    let coord = CLLocationCoordinate2D(latitude: restaurant.lat, longitude: restaurant.lng)
+    // Usar coordenadas diretamente do restaurante
+    let coordinate = CLLocationCoordinate2D(latitude: restaurant.lat, longitude: restaurant.lng)
+    
     return Map(position: $cameraPosition) {
-      Annotation(restaurant.name, coordinate: coord) {
+      Annotation(restaurant.name, coordinate: coordinate) {
         ZStack {
           Circle()
             .fill(restaurant.isFavorite ? AppColors.success : AppColors.secondary)
@@ -103,12 +106,6 @@ struct HistoryDetailView: View {
       }
     }
     .mapStyle(.standard(elevation: .realistic))
-    .onAppear {
-      cameraPosition = .region(MKCoordinateRegion(
-        center: coord,
-        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-      ))
-    }
   }
 
   // MARK: - Cards
@@ -227,7 +224,7 @@ struct HistoryDetailView: View {
   private func actionButtons(restaurant: Restaurant) -> some View {
     HStack(spacing: 12) {
       Button {
-        router.pop()
+        router.popOverlay()
       } label: {
         Image(systemName: "chevron.left")
           .font(.headline)
@@ -272,7 +269,7 @@ struct HistoryDetailView: View {
         .foregroundStyle(AppColors.textSecondary)
 
       Button {
-        router.pop()
+        router.popOverlay()
       } label: {
         Text("Voltar")
           .font(.headline)
@@ -295,11 +292,67 @@ struct HistoryDetailView: View {
       restaurant = try restRepo.fetch(id: restaurantId)
       let visits = try visitRepo.fetchVisits(for: restaurantId)
       visit = visits.first { $0.id == visitId }
+      
+      // Atualizar a câmera com as coordenadas do restaurante
+      updateCameraPosition()
+      
+      // Enriquecer localização se necessário
+      if let r = restaurant, !r.applePlaceResolved {
+        Task {
+          await enrichLocationIfNeeded(repository: restRepo)
+        }
+      }
     } catch {
       restaurant = nil
       visit = nil
     }
     isLoading = false
+  }
+  
+  private func updateCameraPosition() {
+    if let r = restaurant {
+      let region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: r.lat, longitude: r.lng),
+        span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+      )
+      cameraPosition = .region(region)
+    }
+  }
+  
+  /// Enriquece a localização do restaurante via Apple Maps se ainda não foi resolvida
+  private func enrichLocationIfNeeded(repository: SwiftDataRestaurantRepository) async {
+    guard let r = restaurant, !r.applePlaceResolved else { return }
+    
+    isEnrichingLocation = true
+    
+    let placeResolver = MapKitPlaceResolver()
+    let enrichmentService = RestaurantLocationEnrichmentService(
+      placeResolver: placeResolver,
+      restaurantRepository: repository
+    )
+    
+    let result = await enrichmentService.resolve(restaurantId: restaurantId)
+    
+    switch result {
+    case .success(_, _, _, _):
+      // Recarregar restaurante para obter dados atualizados
+      if let updated = try? repository.fetch(id: restaurantId) {
+        restaurant = updated
+        updateCameraPosition()
+      }
+      
+    case .alreadyResolved, .cacheHit:
+      // Recarregar para ter certeza
+      if let updated = try? repository.fetch(id: restaurantId) {
+        restaurant = updated
+        updateCameraPosition()
+      }
+      
+    case .notFound, .failed:
+      break
+    }
+    
+    isEnrichingLocation = false
   }
 
   private func openInMaps(restaurant: Restaurant) {

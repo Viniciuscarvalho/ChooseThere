@@ -20,6 +20,9 @@ protocol RestaurantRandomizerProtocol {
 struct RestaurantRandomizer: RestaurantRandomizerProtocol {
   /// Injectable random number generator (determinism for tests)
   private var rng: RandomNumberGenerator
+  
+  /// Rating mínimo para ser considerado "bem avaliado"
+  private let minHighRating: Double = 4.0
 
   init(rng: RandomNumberGenerator = SystemRandomNumberGenerator()) {
     self.rng = rng
@@ -61,9 +64,14 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
           return false
         }
       }
-
-      // Price tier filter (optional; V1 JSON may not have price)
-      // Skipped if price not in model
+      
+      // Rating filter (modo "only" - apenas bem avaliados)
+      if context.ratingPriority == .only {
+        // Requer pelo menos 1 avaliação e média >= 4.0
+        if r.ratingCount == 0 || r.ratingAverage < minHighRating {
+          return false
+        }
+      }
 
       return true
     }
@@ -71,8 +79,47 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
     guard !candidates.isEmpty else { return nil }
 
     var gen = rng
+    
+    // Aplicar priorização por rating (modo "prefer")
+    if context.ratingPriority == .prefer {
+      return pickWithRatingPriority(from: candidates, using: &gen)
+    }
+    
     return candidates.randomElement(using: &gen)
   }
+  
+  /// Seleciona com maior probabilidade para restaurantes bem avaliados
+  /// Restaurantes com rating >= 4.0 têm 3x mais chance de serem escolhidos
+  private func pickWithRatingPriority(
+    from candidates: [Restaurant],
+    using gen: inout RandomNumberGenerator
+  ) -> Restaurant? {
+    // Criar pesos baseados no rating
+    let weights: [Double] = candidates.map { r in
+      if r.ratingCount > 0 && r.ratingAverage >= minHighRating {
+        return 3.0 // 3x mais chance para bem avaliados
+      } else if r.ratingCount > 0 {
+        return 1.5 // 1.5x para avaliados mas não top
+      } else {
+        return 1.0 // Peso padrão para não avaliados
+      }
+    }
+    
+    let totalWeight = weights.reduce(0, +)
+    let randomValue = Double.random(in: 0..<totalWeight, using: &gen)
+    
+    var cumulative = 0.0
+    for (index, weight) in weights.enumerated() {
+      cumulative += weight
+      if randomValue < cumulative {
+        return candidates[index]
+      }
+    }
+    
+    // Fallback
+    return candidates.last
+  }
 }
+
 
 

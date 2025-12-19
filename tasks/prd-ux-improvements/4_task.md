@@ -77,3 +77,4 @@ GeometryReader { geometry in
 - `ChooseThere/Presentation/Views/ResultView.swift` (modificar)
 
 
+
