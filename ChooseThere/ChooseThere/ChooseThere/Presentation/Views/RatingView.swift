@@ -61,20 +61,7 @@ struct RatingView: View {
   private var headerSection: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack {
-        Button {
-          router.pop()
-        } label: {
-          Image(systemName: "chevron.left")
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(AppColors.textSecondary)
-            .frame(width: 40, height: 40)
-            .background(AppColors.surface, in: Circle())
-            .overlay(
-              Circle()
-                .stroke(AppColors.divider, lineWidth: 1)
-            )
-        }
-        .accessibilityLabel("Voltar")
+        BackButton(action: { router.popOverlay() }, style: .onSurface)
         
         Spacer()
       }
@@ -239,9 +226,9 @@ struct RatingView: View {
   private func saveButton(vm: RatingViewModel) -> some View {
     Button {
       if vm.save() {
-        // Salvar qual tab deve ser selecionada ao voltar
-        UserDefaults.standard.set(Tab.history.rawValue, forKey: "selectedTabOnReturn")
-        router.reset(to: .mainTabs)
+        // Após salvar, volta para tabs e muda para histórico
+        router.dismissAllOverlays()
+        Tab.history.select()
       }
     } label: {
       HStack {
@@ -274,8 +261,17 @@ struct RatingView: View {
 
   private func initializeViewModel() {
     guard viewModel == nil else { return }
-    let repo = SwiftDataVisitRepository(context: modelContext)
-    viewModel = RatingViewModel(restaurantId: restaurantId, visitRepository: repo)
+    let visitRepo = SwiftDataVisitRepository(context: modelContext)
+    let restaurantRepo = SwiftDataRestaurantRepository(context: modelContext)
+    let ratingAggregator = RestaurantRatingAggregator(
+      visitRepository: visitRepo,
+      restaurantRepository: restaurantRepo
+    )
+    viewModel = RatingViewModel(
+      restaurantId: restaurantId,
+      visitRepository: visitRepo,
+      ratingAggregator: ratingAggregator
+    )
   }
 }
 

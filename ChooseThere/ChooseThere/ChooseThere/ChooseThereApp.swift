@@ -22,7 +22,30 @@ struct ChooseThereApp: App {
     do {
       return try ModelContainer(for: schema, configurations: [modelConfiguration])
     } catch {
-      fatalError("Could not create ModelContainer: \(error)")
+      // Se falhar, tentar deletar o banco de dados existente e recriar
+      print("⚠️ SwiftData migration failed: \(error)")
+      print("🔄 Attempting to delete existing database and recreate...")
+      
+      // Deletar arquivos do banco de dados
+      let fileManager = FileManager.default
+      if let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+        let storeURL = appSupport.appendingPathComponent("default.store")
+        let shmURL = appSupport.appendingPathComponent("default.store-shm")
+        let walURL = appSupport.appendingPathComponent("default.store-wal")
+        
+        try? fileManager.removeItem(at: storeURL)
+        try? fileManager.removeItem(at: shmURL)
+        try? fileManager.removeItem(at: walURL)
+        
+        print("✅ Deleted existing database files")
+      }
+      
+      // Tentar novamente
+      do {
+        return try ModelContainer(for: schema, configurations: [modelConfiguration])
+      } catch {
+        fatalError("Could not create ModelContainer after reset: \(error)")
+      }
     }
   }()
 

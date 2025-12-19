@@ -35,7 +35,9 @@ extension Restaurant {
     tags: [String] = [],
     lat: Double = -23.55,
     lng: Double = -46.63,
-    isFavorite: Bool = false
+    isFavorite: Bool = false,
+    ratingAverage: Double = 0,
+    ratingCount: Int = 0
   ) -> Restaurant {
     Restaurant(
       id: id,
@@ -49,7 +51,14 @@ extension Restaurant {
       externalLink: nil,
       lat: lat,
       lng: lng,
-      isFavorite: isFavorite
+      isFavorite: isFavorite,
+      applePlaceResolved: false,
+      applePlaceResolvedAt: nil,
+      applePlaceName: nil,
+      applePlaceAddress: nil,
+      ratingAverage: ratingAverage,
+      ratingCount: ratingCount,
+      ratingLastVisitedAt: nil
     )
   }
 }
@@ -263,6 +272,154 @@ final class RestaurantRandomizerTests: XCTestCase {
 
     XCTAssertEqual(result1?.id, result2?.id)
   }
+  
+  // MARK: - Rating Priority Filter (Only Mode)
+  
+  func testRatingOnlyModeExcludesUnratedRestaurants() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "unrated", ratingAverage: 0, ratingCount: 0),
+      Restaurant.fixture(id: "rated", ratingAverage: 4.5, ratingCount: 3)
+    ]
+    var context = PreferenceContext()
+    context.ratingPriority = .only
+    
+    let result = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
+    
+    XCTAssertEqual(result?.id, "rated")
+  }
+  
+  func testRatingOnlyModeExcludesLowRatedRestaurants() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "low-rated", ratingAverage: 3.5, ratingCount: 5),
+      Restaurant.fixture(id: "high-rated", ratingAverage: 4.5, ratingCount: 3)
+    ]
+    var context = PreferenceContext()
+    context.ratingPriority = .only
+    
+    let result = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
+    
+    XCTAssertEqual(result?.id, "high-rated")
+  }
+  
+  func testRatingOnlyModeReturnsNilWhenNoHighRatedRestaurants() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "low-rated-1", ratingAverage: 3.0, ratingCount: 2),
+      Restaurant.fixture(id: "low-rated-2", ratingAverage: 2.5, ratingCount: 1),
+      Restaurant.fixture(id: "unrated", ratingAverage: 0, ratingCount: 0)
+    ]
+    var context = PreferenceContext()
+    context.ratingPriority = .only
+    
+    let result = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
+    
+    XCTAssertNil(result)
+  }
+  
+  // MARK: - Rating Priority Prefer Mode
+  
+  func testRatingPreferModeIncludesAllRestaurants() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "unrated"),
+      Restaurant.fixture(id: "low-rated", ratingAverage: 3.0, ratingCount: 1),
+      Restaurant.fixture(id: "high-rated", ratingAverage: 4.5, ratingCount: 3)
+    ]
+    var context = PreferenceContext()
+    context.ratingPriority = .prefer
+    
+    // In prefer mode, all should be candidates (with weighted probability)
+    var foundUnrated = false
+    var foundLowRated = false
+    var foundHighRated = false
+    
+    for _ in 0..<200 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        switch r.id {
+        case "unrated": foundUnrated = true
+        case "low-rated": foundLowRated = true
+        case "high-rated": foundHighRated = true
+        default: break
+        }
+      }
+    }
+    
+    XCTAssertTrue(foundUnrated, "Unrated should be pickable in prefer mode")
+    XCTAssertTrue(foundLowRated, "Low rated should be pickable in prefer mode")
+    XCTAssertTrue(foundHighRated, "High rated should be pickable in prefer mode")
+  }
+  
+  func testRatingPreferModeFavorsHighRatedRestaurants() {
+    // Using seeded RNG for deterministic results
+    var rng = SeededRandomNumberGenerator(seed: 12345)
+    let randomizer = RestaurantRandomizer(rng: rng)
+    
+    let restaurants = [
+      Restaurant.fixture(id: "unrated"),
+      Restaurant.fixture(id: "high-rated", ratingAverage: 4.5, ratingCount: 5)
+    ]
+    var context = PreferenceContext()
+    context.ratingPriority = .prefer
+    
+    // High-rated should be picked more often due to 3x weight
+    var highRatedCount = 0
+    var unratedCount = 0
+    
+    for _ in 0..<100 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        if r.id == "high-rated" { highRatedCount += 1 }
+        else { unratedCount += 1 }
+      }
+    }
+    
+    // With 3x weight, high-rated should be picked ~75% of the time (3 / (3+1))
+    // We use a generous threshold to avoid flaky tests
+    XCTAssertGreaterThan(highRatedCount, unratedCount, "High-rated should be picked more often")
+  }
+  
+  // MARK: - Rating None Mode
+  
+  func testRatingNoneModeIncludesAllWithEqualProbability() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "a", ratingAverage: 0, ratingCount: 0),
+      Restaurant.fixture(id: "b", ratingAverage: 4.5, ratingCount: 10),
+      Restaurant.fixture(id: "c", ratingAverage: 2.0, ratingCount: 5)
+    ]
+    var context = PreferenceContext()
+    context.ratingPriority = .none
+    
+    // All should be candidates
+    var found: Set<String> = []
+    for _ in 0..<100 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        found.insert(r.id)
+      }
+    }
+    
+    XCTAssertEqual(found, ["a", "b", "c"], "All restaurants should be pickable in none mode")
+  }
+  
+  // MARK: - Rating Combined with Other Filters
+  
+  func testRatingOnlyModeCombinedWithTagFilter() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "japanese-high", tags: ["japanese"], ratingAverage: 4.5, ratingCount: 3),
+      Restaurant.fixture(id: "japanese-low", tags: ["japanese"], ratingAverage: 3.0, ratingCount: 2),
+      Restaurant.fixture(id: "italian-high", tags: ["italian"], ratingAverage: 5.0, ratingCount: 10)
+    ]
+    var context = PreferenceContext()
+    context.desiredTags = ["japanese"]
+    context.ratingPriority = .only
+    
+    let result = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
+    
+    XCTAssertEqual(result?.id, "japanese-high")
+  }
 }
+
 
 

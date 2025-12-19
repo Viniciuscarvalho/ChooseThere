@@ -19,6 +19,7 @@ final class PreferencesViewModel {
   var avoidTags: Set<String> = []
   var selectedRadius: Int? = nil
   var selectedPriceTier: PriceTier? = nil
+  var ratingPriority: RatingPriority = .none
 
   // Session state
   private(set) var drawnRestaurantIds: Set<String> = []
@@ -74,7 +75,8 @@ final class PreferencesViewModel {
       avoidTags: avoidTags,
       radiusKm: selectedRadius,
       priceTier: selectedPriceTier,
-      userLocation: userLocation
+      userLocation: userLocation,
+      ratingPriority: ratingPriority
     )
   }
 
@@ -108,5 +110,6 @@ final class PreferencesViewModel {
     reRollCount = 0
   }
 }
+
 
 

@@ -23,7 +23,27 @@ final class RestaurantModel {
   var externalLink: String?
   var lat: Double
   var lng: Double
-  var isFavorite: Bool
+  var isFavorite: Bool = false
+  
+  // MARK: - Apple Maps Location Enrichment
+  
+  /// Indica se a localização foi resolvida/validada via Apple Maps (MKLocalSearch)
+  var applePlaceResolved: Bool = false
+  /// Data da última resolução via Apple Maps
+  var applePlaceResolvedAt: Date? = nil
+  /// Nome normalizado retornado pelo Apple Maps
+  var applePlaceName: String? = nil
+  /// Endereço normalizado retornado pelo Apple Maps
+  var applePlaceAddress: String? = nil
+  
+  // MARK: - Internal Rating (Snapshot from VisitModel)
+  
+  /// Média de rating (0–5) baseada nas avaliações do usuário
+  var ratingAverage: Double = 0.0
+  /// Quantidade de avaliações feitas pelo usuário
+  var ratingCount: Int = 0
+  /// Data da última visita avaliada
+  var ratingLastVisitedAt: Date? = nil
 
   init(
     id: String,
@@ -37,7 +57,14 @@ final class RestaurantModel {
     externalLink: String?,
     lat: Double,
     lng: Double,
-    isFavorite: Bool = false
+    isFavorite: Bool = false,
+    applePlaceResolved: Bool = false,
+    applePlaceResolvedAt: Date? = nil,
+    applePlaceName: String? = nil,
+    applePlaceAddress: String? = nil,
+    ratingAverage: Double = 0,
+    ratingCount: Int = 0,
+    ratingLastVisitedAt: Date? = nil
   ) {
     self.id = id
     self.name = name
@@ -51,7 +78,15 @@ final class RestaurantModel {
     self.lat = lat
     self.lng = lng
     self.isFavorite = isFavorite
+    self.applePlaceResolved = applePlaceResolved
+    self.applePlaceResolvedAt = applePlaceResolvedAt
+    self.applePlaceName = applePlaceName
+    self.applePlaceAddress = applePlaceAddress
+    self.ratingAverage = ratingAverage
+    self.ratingCount = ratingCount
+    self.ratingLastVisitedAt = ratingLastVisitedAt
   }
 }
+
 
 

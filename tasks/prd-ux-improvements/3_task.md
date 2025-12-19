@@ -63,3 +63,4 @@ Consultar `techspec.md` para:
 - `ChooseThere/Data/Repositories/SwiftDataRestaurantRepository.swift` (reutilizar)
 
 
+

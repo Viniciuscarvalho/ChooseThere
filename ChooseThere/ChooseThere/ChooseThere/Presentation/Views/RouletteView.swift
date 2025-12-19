@@ -135,7 +135,8 @@ struct RouletteView: View {
     VStack(spacing: 12) {
       if case .finished(let restaurantId) = vm.phase {
         Button {
-          router.push(.result(restaurantId: restaurantId))
+          // Substitui a roulette por result na pilha (para não voltar para animação)
+          router.replaceOverlay(with: .result(restaurantId: restaurantId))
         } label: {
           HStack {
             Image(systemName: "map.fill")
@@ -169,7 +170,7 @@ struct RouletteView: View {
         }
       } else if case .noResults = vm.phase {
         Button {
-          router.pop()
+          router.popOverlay()
         } label: {
           HStack {
             Image(systemName: "arrow.left")

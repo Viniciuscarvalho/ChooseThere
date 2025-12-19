@@ -175,3 +175,4 @@ Corrige o corte do nome do restaurante.
    - **Resposta proposta**: Sim, preservar preferências selecionadas
 
 
+

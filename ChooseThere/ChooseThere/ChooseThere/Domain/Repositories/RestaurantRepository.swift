@@ -15,6 +15,34 @@ protocol RestaurantRepository {
   func fetch(id: String) throws -> Restaurant?
   /// Set the favorite status for a restaurant
   func setFavorite(id: String, isFavorite: Bool) throws
+  
+  // MARK: - Location Enrichment
+  
+  /// Atualiza os dados de localização resolvida via Apple Maps
+  func updateApplePlaceData(
+    id: String,
+    lat: Double,
+    lng: Double,
+    applePlaceName: String?,
+    applePlaceAddress: String?
+  ) throws
+  
+  /// Marca um restaurante como não resolvido pelo Apple Maps
+  func markApplePlaceUnresolved(id: String) throws
+  
+  // MARK: - Rating Snapshot
+  
+  /// Atualiza o snapshot de rating interno do restaurante
+  func updateRatingSnapshot(
+    id: String,
+    average: Double,
+    count: Int,
+    lastVisitedAt: Date?
+  ) throws
+  
+  /// Busca restaurantes que ainda não foram resolvidos via Apple Maps
+  func fetchUnresolvedLocations() throws -> [Restaurant]
 }
+
 
 
