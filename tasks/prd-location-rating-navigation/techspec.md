@@ -141,3 +141,5 @@ Não aplicável (apenas MapKit local e persistência local).
 - `ChooseThere/ChooseThere/ChooseThere/ChooseThere/Data/Repositories/SwiftDataRestaurantRepository.swift`
 
 
+
+
