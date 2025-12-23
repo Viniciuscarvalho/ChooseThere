@@ -15,6 +15,7 @@ struct RatingView: View {
   @Environment(\.modelContext) private var modelContext
 
   @State private var viewModel: RatingViewModel?
+  @FocusState private var isNoteFieldFocused: Bool
 
   var body: some View {
     ZStack {
@@ -42,6 +43,10 @@ struct RatingView: View {
             Spacer(minLength: 80)
           }
           .padding(20)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+          isNoteFieldFocused = false
         }
         .safeAreaInset(edge: .bottom) {
           saveButton(vm: vm)
@@ -200,12 +205,18 @@ struct RatingView: View {
       ), axis: .vertical)
       .lineLimit(3...6)
       .textFieldStyle(.plain)
+      .focused($isNoteFieldFocused)
+      .submitLabel(.done)
+      .onSubmit {
+        isNoteFieldFocused = false
+      }
       .padding(14)
       .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
       .overlay(
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .stroke(AppColors.divider, lineWidth: 1)
+          .stroke(isNoteFieldFocused ? AppColors.primary : AppColors.divider, lineWidth: isNoteFieldFocused ? 2 : 1)
       )
+      .animation(.easeInOut(duration: 0.2), value: isNoteFieldFocused)
     }
   }
 

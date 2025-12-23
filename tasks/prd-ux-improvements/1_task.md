@@ -68,3 +68,5 @@ Consultar `techspec.md` para:
 
 
 
+
+
