@@ -111,6 +111,8 @@ type NomeServico interface {
 
 [Pesquisa as rules na pasta @.cursor/rules que se encaixam nesta techspec e liste-as abaixo:]
 
+[Utilize as skills na pasta @.cursor/skills que se encaixam nesta techspec]
+
 ### Arquivos relevantes
 
 [Liste aqui arquivos relevantes]

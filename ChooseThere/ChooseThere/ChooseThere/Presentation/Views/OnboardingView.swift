@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingView: View {
   @Environment(AppRouter.self) private var router
   @State private var currentPage = 0
+  @State private var showingCitySelection = false
 
   private let slides: [OnboardingSlide] = [
     OnboardingSlide(
@@ -22,7 +23,7 @@ struct OnboardingView: View {
       icon: "dice.fill",
       iconColor: AppColors.secondary,
       title: "Sorteie um restaurante",
-      description: "Deixe a sorte escolher entre os melhores lugares de São Paulo"
+      description: "Deixe a sorte escolher entre os melhores lugares da sua cidade"
     ),
     OnboardingSlide(
       icon: "star.fill",
@@ -83,6 +84,14 @@ struct OnboardingView: View {
           .padding(.horizontal, 20)
           .padding(.bottom, 16)
       }
+    }
+    .fullScreenCover(isPresented: $showingCitySelection) {
+      CitySelectionView(
+        onCitySelected: { _ in
+          finishOnboardingWithCity()
+        },
+        isOnboarding: true
+      )
     }
   }
 
@@ -178,7 +187,19 @@ struct OnboardingView: View {
   // MARK: - Helpers
 
   private func completeOnboarding() {
+    // Mostrar seleção de cidade antes de finalizar
+    showingCitySelection = true
+  }
+
+  private func finishOnboardingWithCity() {
+    // Marcar city onboarding como completo
+    AppSettingsStorage.markCityOnboardingCompleted()
+
+    // Marcar onboarding geral como visto
     OnboardingStorage.markAsSeen()
+
+    // Navegar para as tabs
+    showingCitySelection = false
     router.setMainRoute(.mainTabs)
   }
 }

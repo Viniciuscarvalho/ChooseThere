@@ -13,9 +13,13 @@ struct PreferencesView: View {
   @Environment(\.modelContext) private var modelContext
 
   @State private var viewModel: PreferencesViewModel?
+  @State private var nearbyViewModel: NearbyModeViewModel?
+  @State private var locationManager = LocationManager()
   @State private var showNoResultsAlert = false
   @State private var enrichmentManager = LocationEnrichmentManager()
   @State private var showToolsSection = false
+  @State private var showingSettings = false
+  @State private var searchMode: SearchMode = AppSettingsStorage.searchMode
 
   private let radiusOptions: [Int?] = [nil, 1, 3, 5, 10]
 
@@ -29,32 +33,30 @@ struct PreferencesView: View {
             VStack(alignment: .leading, spacing: 24) {
               headerSection
 
-              desiredTagsSection(vm: vm)
+              // Segmento Minha Lista | Perto de mim
+              searchModeSegment
 
-              radiusSection(vm: vm)
-
-              priceTierSection(vm: vm)
-              
-              ratingPrioritySection(vm: vm)
-
-              avoidTagsSection(vm: vm)
-              
-              // Seção de ferramentas (colapsável)
-              toolsSection
-
-              // Extra space at bottom
-              Spacer(minLength: 20)
+              // Conteúdo baseado no modo selecionado
+              if searchMode == .myList {
+                myListContent(vm: vm)
+              } else {
+                nearbyContent
+              }
             }
             .padding(20)
           }
 
-          // Botão de sortear fixo acima da TabBar - só aparece com seleção
-          if hasSelection(vm: vm) {
+          // Botão de sortear fixo acima da TabBar
+          if searchMode == .myList && hasSelection(vm: vm) {
             sortButton(vm: vm)
+              .transition(.move(edge: .bottom).combined(with: .opacity))
+          } else if searchMode == .nearby {
+            nearbyActionButton
               .transition(.move(edge: .bottom).combined(with: .opacity))
           }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: hasSelection(vm: vm))
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchMode)
       } else {
         ProgressView()
           .tint(AppColors.primary)
@@ -63,21 +65,589 @@ struct PreferencesView: View {
     .onAppear {
       initializeViewModel()
     }
-  }
-
-  // MARK: - Sections
-
-  private var headerSection: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text("Hoje estamos a fim de…")
-        .font(.title2.weight(.bold))
-        .foregroundStyle(AppColors.textPrimary)
-
-      Text("Selecione tags e ajuste filtros para sortear.")
-        .font(.subheadline)
-        .foregroundStyle(AppColors.textSecondary)
+    .sheet(isPresented: $showingSettings) {
+      SettingsView()
     }
   }
+
+  // MARK: - Header & Mode Segment
+
+  private var headerSection: some View {
+    HStack(alignment: .top) {
+      VStack(alignment: .leading, spacing: 6) {
+        Text("Hoje estamos a fim de…")
+          .font(.title2.weight(.bold))
+          .foregroundStyle(AppColors.textPrimary)
+
+        Text("Selecione tags e ajuste filtros para sortear.")
+          .font(.subheadline)
+          .foregroundStyle(AppColors.textSecondary)
+      }
+
+      Spacer()
+
+      // Botão de Configurações
+      Button {
+        showingSettings = true
+      } label: {
+        Image(systemName: "gearshape.fill")
+          .font(.system(size: 20, weight: .medium))
+          .foregroundStyle(AppColors.textSecondary)
+          .frame(width: 40, height: 40)
+          .background(AppColors.surface, in: Circle())
+          .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Configurações")
+    }
+  }
+
+  private var searchModeSegment: some View {
+    HStack(spacing: 0) {
+      ForEach(SearchMode.allCases) { mode in
+        Button {
+          withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            searchMode = mode
+            AppSettingsStorage.searchMode = mode
+          }
+        } label: {
+          HStack(spacing: 6) {
+            Image(systemName: mode.icon)
+              .font(.system(size: 14, weight: .medium))
+            Text(mode.displayName)
+              .font(.subheadline.weight(.semibold))
+          }
+          .foregroundStyle(searchMode == mode ? AppColors.textPrimary : AppColors.textSecondary)
+          .frame(maxWidth: .infinity)
+          .frame(minHeight: 44) // Touch target mínimo HIG
+          .background(
+            searchMode == mode
+              ? AppColors.primary
+              : Color.clear,
+            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+          )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(mode.displayName)
+        .accessibilityHint(searchMode == mode ? "Modo selecionado" : "Toque duas vezes para selecionar")
+        .accessibilityAddTraits(searchMode == mode ? .isSelected : [])
+      }
+    }
+    .padding(4)
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("Modo de busca")
+  }
+
+  // MARK: - My List Content
+
+  @ViewBuilder
+  private func myListContent(vm: PreferencesViewModel) -> some View {
+    desiredTagsSection(vm: vm)
+    radiusSection(vm: vm)
+    priceTierSection(vm: vm)
+    ratingPrioritySection(vm: vm)
+    avoidTagsSection(vm: vm)
+    toolsSection
+    Spacer(minLength: 20)
+  }
+
+  // MARK: - Nearby Content
+
+  @ViewBuilder
+  private var nearbyContent: some View {
+    if let nearbyVM = nearbyViewModel {
+      VStack(spacing: 24) {
+        // Info sobre cidade selecionada
+        cityInfoCard
+
+        // Filtros do Perto de mim
+        nearbyFiltersSection(nearbyVM: nearbyVM)
+
+        // Estado da busca
+        nearbyStateView(nearbyVM: nearbyVM)
+
+        Spacer(minLength: 20)
+      }
+    } else {
+      ProgressView()
+        .tint(AppColors.primary)
+    }
+  }
+
+  private var cityInfoCard: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "mappin.circle.fill")
+        .font(.system(size: 28))
+        .foregroundStyle(AppColors.accent)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Buscando em")
+          .font(.caption)
+          .foregroundStyle(AppColors.textSecondary)
+
+        Text(currentCityDisplayName)
+          .font(.headline)
+          .foregroundStyle(AppColors.textPrimary)
+      }
+
+      Spacer()
+
+      Button {
+        showingSettings = true
+      } label: {
+        Text("Alterar")
+          .font(.subheadline.weight(.medium))
+          .foregroundStyle(AppColors.primary)
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(16)
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
+  }
+
+  private func nearbyFiltersSection(nearbyVM: NearbyModeViewModel) -> some View {
+    VStack(alignment: .leading, spacing: 16) {
+      // Fonte de dados
+      VStack(alignment: .leading, spacing: 10) {
+        Text("Fonte de dados")
+          .font(.headline)
+          .foregroundStyle(AppColors.textPrimary)
+          .accessibilityAddTraits(.isHeader)
+
+        HStack(spacing: 8) {
+          ForEach(NearbySource.allCases) { source in
+            let isSelected = nearbyVM.source == source
+            Button {
+              nearbyVM.source = source
+            } label: {
+              HStack(spacing: 6) {
+                Image(systemName: source == .localBase ? "externaldrive.fill" : "map.fill")
+                  .font(.system(size: 14))
+                Text(source.displayName)
+                  .font(.subheadline.weight(.medium))
+              }
+              .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
+              .padding(.horizontal, 14)
+              .frame(minHeight: 44) // Touch target mínimo HIG
+              .background(
+                isSelected ? AppColors.primary : AppColors.surface,
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                  .stroke(isSelected ? AppColors.primary : AppColors.divider, lineWidth: 1)
+              )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(source.displayName)
+            .accessibilityHint(sourceAccessibilityHint(for: source))
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+          }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Selecionar fonte de dados")
+      }
+
+      // Raio
+      VStack(alignment: .leading, spacing: 10) {
+        Text("Raio de busca")
+          .font(.headline)
+          .foregroundStyle(AppColors.textPrimary)
+          .accessibilityAddTraits(.isHeader)
+
+        HStack(spacing: 8) {
+          ForEach([1, 3, 5, 10], id: \.self) { km in
+            let isSelected = nearbyVM.radiusKm == km
+            Button {
+              nearbyVM.radiusKm = km
+            } label: {
+              Text("\(km)km")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44) // Touch target mínimo HIG
+                .background(
+                  isSelected ? AppColors.primary : AppColors.surface,
+                  in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(isSelected ? AppColors.primary : AppColors.divider, lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(km) quilômetros")
+            .accessibilityHint(isSelected ? "Raio selecionado" : "Toque duas vezes para selecionar este raio")
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+          }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Selecionar raio de busca")
+      }
+    }
+  }
+
+  private func sourceAccessibilityHint(for source: NearbySource) -> String {
+    switch source {
+    case .localBase:
+      return "Busca em restaurantes salvos localmente"
+    case .appleMaps:
+      return "Busca lugares no Apple Maps"
+    }
+  }
+
+  @ViewBuilder
+  private func nearbyStateView(nearbyVM: NearbyModeViewModel) -> some View {
+    switch nearbyVM.searchState {
+    case .idle:
+      nearbyIdleView
+
+    case .loading:
+      nearbyLoadingView
+
+    case .noPermission:
+      nearbyNoPermissionView(nearbyVM: nearbyVM)
+
+    case .noResults:
+      nearbyNoResultsView
+
+    case .error(let message):
+      nearbyErrorView(message: message)
+
+    case .localResults(let restaurants):
+      nearbyResultsView(restaurants: restaurants, nearbyVM: nearbyVM)
+
+    case .appleMapsResults(let places):
+      appleMapsResultsView(places: places, nearbyVM: nearbyVM)
+    }
+  }
+
+  private var nearbyIdleView: some View {
+    StateView.idle(
+      title: "Busca por proximidade",
+      message: "Toque em \"Buscar\" para encontrar restaurantes próximos usando sua localização atual."
+    )
+  }
+
+  private var nearbyLoadingView: some View {
+    StateView.loading(
+      message: nearbyViewModel?.source == .appleMaps
+        ? "Buscando no Apple Maps..."
+        : "Buscando restaurantes próximos..."
+    )
+  }
+
+  private func nearbyNoPermissionView(nearbyVM: NearbyModeViewModel) -> some View {
+    StateView.noPermission(
+      title: "Localização necessária",
+      message: "Para encontrar restaurantes próximos, precisamos de acesso à sua localização.",
+      canRequest: nearbyVM.canRequestPermission,
+      requestAction: { nearbyVM.requestLocationPermission() },
+      openSettingsAction: { nearbyVM.openSettings() }
+    )
+  }
+
+  private var nearbyNoResultsView: some View {
+    StateView.empty(
+      title: "Nenhum restaurante encontrado",
+      message: nearbyNoResultsMessage,
+      primaryAction: nearbyViewModel?.source == .appleMaps
+        ? .init(title: "Tentar Minha base", style: .secondary, action: switchToLocalBase)
+        : nil
+    )
+  }
+
+  private var nearbyNoResultsMessage: String {
+    if nearbyViewModel?.source == .appleMaps {
+      return "Não encontramos lugares próximos no Apple Maps. Tente aumentar o raio, mudar os filtros ou usar \"Minha base\"."
+    }
+    return "Tente aumentar o raio de busca ou mudar os filtros."
+  }
+
+  private func nearbyErrorView(message: String) -> some View {
+    // Detectar se é erro de rede para mostrar fallback
+    let isNetworkError = message.lowercased().contains("conexão") ||
+                         message.lowercased().contains("rede") ||
+                         message.lowercased().contains("internet")
+
+    if isNetworkError && nearbyViewModel?.source == .appleMaps {
+      return AnyView(
+        StateView.networkError(
+          retryAction: {
+            Task {
+              await nearbyViewModel?.searchNearby()
+            }
+          },
+          switchToLocalAction: switchToLocalBase
+        )
+      )
+    }
+
+    return AnyView(
+      StateView.error(
+        title: "Ops! Algo deu errado",
+        message: message,
+        retryAction: .init(title: "Tentar novamente", style: .primary) {
+          Task {
+            await nearbyViewModel?.searchNearby()
+          }
+        },
+        fallbackAction: nearbyViewModel?.source == .appleMaps
+          ? .init(title: "Usar Minha base", style: .secondary, action: switchToLocalBase)
+          : nil
+      )
+    )
+  }
+
+  /// Muda para fonte "Minha base" como fallback
+  private func switchToLocalBase() {
+    nearbyViewModel?.source = .localBase
+    Task {
+      await nearbyViewModel?.searchNearby()
+    }
+  }
+
+  private func nearbyResultsView(restaurants: [Restaurant], nearbyVM: NearbyModeViewModel) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        Text("\(restaurants.count) restaurantes encontrados")
+          .font(.headline)
+          .foregroundStyle(AppColors.textPrimary)
+
+        Spacer()
+
+        Button {
+          Task {
+            await nearbyVM.searchNearby()
+          }
+        } label: {
+          Image(systemName: "arrow.clockwise")
+            .font(.system(size: 16, weight: .medium))
+            .foregroundStyle(AppColors.primary)
+        }
+        .buttonStyle(.plain)
+      }
+
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(restaurants.prefix(10)) { restaurant in
+            nearbyRestaurantCard(restaurant: restaurant, nearbyVM: nearbyVM)
+          }
+        }
+      }
+    }
+    .padding(16)
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  private func nearbyRestaurantCard(restaurant: Restaurant, nearbyVM: NearbyModeViewModel) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(restaurant.name)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(AppColors.textPrimary)
+        .lineLimit(2)
+
+      Text(restaurant.category)
+        .font(.caption)
+        .foregroundStyle(AppColors.textSecondary)
+
+      if let distance = nearbyVM.formattedDistance(to: restaurant) {
+        HStack(spacing: 4) {
+          Image(systemName: "location.fill")
+            .font(.system(size: 10))
+          Text(distance)
+        }
+        .font(.caption)
+        .foregroundStyle(AppColors.accent)
+      }
+    }
+    .frame(width: 140, alignment: .leading)
+    .padding(12)
+    .background(AppColors.background, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 10, style: .continuous)
+        .stroke(AppColors.divider, lineWidth: 1)
+    )
+  }
+
+  // MARK: - Apple Maps Results View
+
+  private func appleMapsResultsView(places: [NearbyPlace], nearbyVM: NearbyModeViewModel) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        HStack(spacing: 6) {
+          Image(systemName: "map.fill")
+            .font(.system(size: 14))
+            .foregroundStyle(AppColors.accent)
+
+          Text("\(places.count) lugares encontrados")
+            .font(.headline)
+            .foregroundStyle(AppColors.textPrimary)
+        }
+
+        Spacer()
+
+        Button {
+          Task {
+            await nearbyVM.refreshSearch()
+          }
+        } label: {
+          Image(systemName: "arrow.clockwise")
+            .font(.system(size: 16, weight: .medium))
+            .foregroundStyle(AppColors.primary)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Atualizar busca")
+      }
+
+      // Badge indicando fonte Apple Maps
+      HStack(spacing: 4) {
+        Image(systemName: "apple.logo")
+          .font(.system(size: 10))
+        Text("via Apple Maps")
+          .font(.caption2)
+      }
+      .foregroundStyle(AppColors.textSecondary)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 4)
+      .background(AppColors.divider.opacity(0.5), in: Capsule())
+
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(places.prefix(15)) { place in
+            appleMapsPlaceCard(place: place, nearbyVM: nearbyVM)
+          }
+        }
+      }
+    }
+    .padding(16)
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  private func appleMapsPlaceCard(place: NearbyPlace, nearbyVM: NearbyModeViewModel) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(place.name)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(AppColors.textPrimary)
+        .lineLimit(2)
+
+      if let categoryHint = place.categoryHint {
+        Text(categoryHint)
+          .font(.caption)
+          .foregroundStyle(AppColors.textSecondary)
+      }
+
+      if let distance = nearbyVM.formattedDistance(to: place) {
+        HStack(spacing: 4) {
+          Image(systemName: "location.fill")
+            .font(.system(size: 10))
+          Text(distance)
+        }
+        .font(.caption)
+        .foregroundStyle(AppColors.accent)
+      }
+
+      if let address = place.address {
+        Text(address)
+          .font(.caption2)
+          .foregroundStyle(AppColors.textSecondary.opacity(0.8))
+          .lineLimit(2)
+      }
+    }
+    .frame(width: 160, alignment: .leading)
+    .padding(12)
+    .background(AppColors.background, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 10, style: .continuous)
+        .stroke(AppColors.divider, lineWidth: 1)
+    )
+  }
+
+  private var nearbyActionButton: some View {
+    Button {
+      guard let nearbyVM = nearbyViewModel else { return }
+      nearbyVM.resetSession()
+      Task {
+        await nearbyVM.searchNearby()
+        // Se encontrou resultados, tentar sortear baseado na fonte
+        if nearbyVM.source == .localBase {
+          if !nearbyVM.nearbyRestaurants.isEmpty {
+            if let restaurantId = nearbyVM.draw() {
+              UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
+              router.pushOverlay(.roulette)
+            }
+          }
+        } else {
+          // Apple Maps: sortear um lugar e ir direto para detalhe
+          if !nearbyVM.nearbyPlaces.isEmpty {
+            if let place = nearbyVM.drawPlace() {
+              // Navegar diretamente para o detalhe do lugar
+              router.pushOverlay(.nearbyPlaceResult(place))
+            }
+          }
+        }
+      }
+    } label: {
+      HStack {
+        if nearbyViewModel?.searchState.isLoading == true {
+          ProgressView()
+            .tint(AppColors.textPrimary)
+        } else {
+          Image(systemName: nearbyViewModel?.source == .appleMaps ? "map.fill" : "location.fill")
+        }
+        Text(nearbyActionButtonTitle)
+      }
+      .font(.headline)
+      .foregroundStyle(AppColors.textPrimary)
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 14)
+      .background(AppColors.accent, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .shadow(color: AppColors.accent.opacity(0.3), radius: 8, y: 4)
+    }
+    .disabled(nearbyViewModel?.searchState.isLoading == true)
+    .padding(.horizontal, 32)
+    .padding(.vertical, 12)
+    .accessibilityLabel(nearbyActionButtonTitle)
+    .accessibilityHint(nearbyActionAccessibilityHint)
+    .accessibilityAddTraits(.isButton)
+  }
+
+  private var nearbyActionAccessibilityHint: String {
+    guard let nearbyVM = nearbyViewModel else {
+      return "Busca restaurantes próximos à sua localização"
+    }
+    if nearbyVM.searchState.isLoading {
+      return "Busca em andamento, aguarde"
+    }
+    if nearbyVM.source == .appleMaps {
+      return "Toque duas vezes para descobrir novos lugares no Apple Maps"
+    }
+    return "Toque duas vezes para buscar restaurantes próximos"
+  }
+
+  private var nearbyActionButtonTitle: String {
+    guard let nearbyVM = nearbyViewModel else {
+      return "Buscar perto de mim"
+    }
+    if nearbyVM.source == .appleMaps {
+      return "Descobrir no Apple Maps"
+    }
+    return "Buscar perto de mim"
+  }
+
+  private var currentCityDisplayName: String {
+    guard let key = AppSettingsStorage.selectedCityKey else {
+      return "Qualquer lugar (Perto de mim)"
+    }
+    let parts = key.split(separator: "|", maxSplits: 1)
+    guard parts.count == 2 else { return key }
+    return "\(parts[0]), \(parts[1])"
+  }
+
+  // MARK: - My List Sections
 
   private func desiredTagsSection(vm: PreferencesViewModel) -> some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -361,9 +931,18 @@ struct PreferencesView: View {
   private func initializeViewModel() {
     guard viewModel == nil else { return }
     let repo = SwiftDataRestaurantRepository(context: modelContext)
+    
+    // ViewModel para "Minha Lista"
     let vm = PreferencesViewModel(restaurantRepository: repo)
     vm.loadTags()
     viewModel = vm
+    
+    // ViewModel para "Perto de mim"
+    let nearbyVM = NearbyModeViewModel(
+      locationManager: locationManager,
+      restaurantRepository: repo
+    )
+    nearbyViewModel = nearbyVM
     
     // Configurar o manager de enriquecimento
     enrichmentManager.configure(with: repo)

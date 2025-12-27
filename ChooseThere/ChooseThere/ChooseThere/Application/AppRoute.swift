@@ -12,6 +12,8 @@ enum OverlayRoute: Hashable, Identifiable {
   case result(restaurantId: String)
   case rating(restaurantId: String)
   case historyDetail(restaurantId: String, visitId: UUID)
+  /// Resultado de busca Apple Maps (entidade transitória, não persistida)
+  case nearbyPlaceResult(NearbyPlace)
   
   var id: String {
     switch self {
@@ -23,6 +25,8 @@ enum OverlayRoute: Hashable, Identifiable {
       return "rating-\(restaurantId)"
     case .historyDetail(let restaurantId, let visitId):
       return "historyDetail-\(restaurantId)-\(visitId)"
+    case .nearbyPlaceResult(let place):
+      return "nearbyPlaceResult-\(place.id)"
     }
   }
 }
