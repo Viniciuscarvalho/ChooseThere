@@ -75,6 +75,8 @@ struct MainTabView: View {
           RatingView(restaurantId: restaurantId)
         case .historyDetail(let restaurantId, let visitId):
           HistoryDetailView(restaurantId: restaurantId, visitId: visitId)
+        case .nearbyPlaceResult(let place):
+          NearbyPlaceDetailView(place: place)
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
