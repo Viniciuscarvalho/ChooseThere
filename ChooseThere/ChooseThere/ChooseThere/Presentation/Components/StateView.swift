@@ -135,7 +135,9 @@ struct StateView: View {
   }
 
   private func actionButton(for action: StateAction) -> some View {
-    Button(action: action.action) {
+    Button {
+      action.action()
+    } label: {
       Text(action.title)
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(buttonForegroundColor(for: action.style))
@@ -181,7 +183,8 @@ struct StateView: View {
   private func buttonForegroundColor(for style: StateAction.ActionStyle) -> Color {
     switch style {
     case .primary:
-      return AppColors.textPrimary
+      // Botão primary com fundo accent (mint) deve ter texto claro para contraste
+      return AppColors.surface
     case .secondary:
       return AppColors.accent
     case .destructive:

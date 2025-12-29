@@ -173,8 +173,12 @@ final class NearbyModeViewModel {
   // MARK: - Actions
 
   /// Solicita permissão de localização
+  @MainActor
   func requestLocationPermission() {
+    // Garantir que estamos no MainActor antes de solicitar permissão
     locationManager.requestPermission()
+    // Atualizar status imediatamente após solicitar
+    locationManager.updateStatus()
   }
 
   /// Abre as configurações do sistema
@@ -188,7 +192,15 @@ final class NearbyModeViewModel {
     guard hasLocationPermission else {
       if canRequestPermission {
         requestLocationPermission()
-        searchState = .noPermission
+        // Aguardar um pouco para o sistema processar a permissão
+        try? await Task.sleep(for: .milliseconds(500))
+        // Atualizar status após solicitar permissão
+        locationManager.updateStatus()
+        // Se ainda não tiver permissão, mostrar estado de noPermission
+        if !locationManager.status.isAuthorized {
+          searchState = .noPermission
+        }
+        return
       } else {
         searchState = .noPermission
       }

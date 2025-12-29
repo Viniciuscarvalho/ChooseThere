@@ -209,9 +209,9 @@ struct PreferencesView: View {
   }
 
   private func nearbyFiltersSection(nearbyVM: NearbyModeViewModel) -> some View {
-    VStack(alignment: .leading, spacing: 16) {
-      // Fonte de dados
-      VStack(alignment: .leading, spacing: 10) {
+    VStack(spacing: 16) {
+      // Card: Fonte de dados
+      VStack(alignment: .leading, spacing: 12) {
         Text("Fonte de dados")
           .font(.headline)
           .foregroundStyle(AppColors.textPrimary)
@@ -250,9 +250,13 @@ struct PreferencesView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Selecionar fonte de dados")
       }
+      .padding(16)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .shadow(color: AppColors.divider.opacity(0.3), radius: 2, y: 1)
 
-      // Raio
-      VStack(alignment: .leading, spacing: 10) {
+      // Card: Raio de busca
+      VStack(alignment: .leading, spacing: 12) {
         Text("Raio de busca")
           .font(.headline)
           .foregroundStyle(AppColors.textPrimary)
@@ -287,7 +291,12 @@ struct PreferencesView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Selecionar raio de busca")
       }
+      .padding(16)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .shadow(color: AppColors.divider.opacity(0.3), radius: 2, y: 1)
     }
+    .padding(.horizontal, 20)
   }
 
   private func sourceAccessibilityHint(for source: NearbySource) -> String {
@@ -345,7 +354,15 @@ struct PreferencesView: View {
       title: "Localização necessária",
       message: "Para encontrar restaurantes próximos, precisamos de acesso à sua localização.",
       canRequest: nearbyVM.canRequestPermission,
-      requestAction: { nearbyVM.requestLocationPermission() },
+      requestAction: {
+        Task { @MainActor in
+          nearbyVM.requestLocationPermission()
+          // Pequeno delay para o sistema processar
+          try? await Task.sleep(for: .milliseconds(100))
+          // Tentar buscar novamente após solicitar permissão
+          await nearbyVM.searchNearby()
+        }
+      },
       openSettingsAction: { nearbyVM.openSettings() }
     )
   }
