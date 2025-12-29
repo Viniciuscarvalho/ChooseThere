@@ -931,9 +931,10 @@ struct PreferencesView: View {
   private func initializeViewModel() {
     guard viewModel == nil else { return }
     let repo = SwiftDataRestaurantRepository(context: modelContext)
+    let visitRepo = SwiftDataVisitRepository(context: modelContext)
     
-    // ViewModel para "Minha Lista"
-    let vm = PreferencesViewModel(restaurantRepository: repo)
+    // ViewModel para "Minha Lista" com SmartRouletteService (anti-repetição)
+    let vm = PreferencesViewModel(restaurantRepository: repo, visitRepository: visitRepo)
     vm.loadTags()
     viewModel = vm
     

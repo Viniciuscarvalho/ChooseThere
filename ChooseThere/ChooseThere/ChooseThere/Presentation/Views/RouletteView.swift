@@ -191,7 +191,8 @@ struct RouletteView: View {
   private func initializeViewModel() {
     guard viewModel == nil else { return }
     let repo = SwiftDataRestaurantRepository(context: modelContext)
-    let vm = RouletteViewModel(restaurantRepository: repo)
+    let visitRepo = SwiftDataVisitRepository(context: modelContext)
+    let vm = RouletteViewModel(restaurantRepository: repo, visitRepository: visitRepo)
     let pendingId = UserDefaults.standard.string(forKey: "pendingRestaurantId")
     UserDefaults.standard.removeObject(forKey: "pendingRestaurantId")
     vm.loadAndSpin(pendingId: pendingId)

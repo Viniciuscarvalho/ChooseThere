@@ -33,6 +33,7 @@ struct PreferenceContext {
   var priceTier: PriceTier?
   var userLocation: CLLocationCoordinate2D?
   var ratingPriority: RatingPriority
+  var learnedPreferences: LearnedPreferences?
 
   init(
     desiredTags: Set<String> = [],
@@ -40,7 +41,8 @@ struct PreferenceContext {
     radiusKm: Int? = nil,
     priceTier: PriceTier? = nil,
     userLocation: CLLocationCoordinate2D? = nil,
-    ratingPriority: RatingPriority = .none
+    ratingPriority: RatingPriority = .none,
+    learnedPreferences: LearnedPreferences? = nil
   ) {
     self.desiredTags = desiredTags
     self.avoidTags = avoidTags
@@ -48,6 +50,7 @@ struct PreferenceContext {
     self.priceTier = priceTier
     self.userLocation = userLocation
     self.ratingPriority = ratingPriority
+    self.learnedPreferences = learnedPreferences
   }
 }
 

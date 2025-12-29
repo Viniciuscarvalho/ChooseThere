@@ -20,7 +20,7 @@ protocol RestaurantRandomizerProtocol {
 struct RestaurantRandomizer: RestaurantRandomizerProtocol {
   /// Injectable random number generator (determinism for tests)
   private var rng: RandomNumberGenerator
-  
+
   /// Rating mínimo para ser considerado "bem avaliado"
   private let minHighRating: Double = 4.0
 
@@ -64,7 +64,7 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
           return false
         }
       }
-      
+
       // Rating filter (modo "only" - apenas bem avaliados)
       if context.ratingPriority == .only {
         // Requer pelo menos 1 avaliação e média >= 4.0
@@ -79,23 +79,77 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
     guard !candidates.isEmpty else { return nil }
 
     var gen = rng
-    
-    // Aplicar priorização por rating (modo "prefer")
-    if context.ratingPriority == .prefer {
+
+    // Determinar estratégia de seleção
+    let hasLearnedPrefs = context.learnedPreferences?.hasLearnedPreferences ?? false
+    let hasRatingPriority = context.ratingPriority == .prefer
+
+    if hasLearnedPrefs && hasRatingPriority {
+      // Combinar pesos de match + rating
+      return pickWithCombinedWeights(from: candidates, context: context, using: &gen)
+    } else if hasLearnedPrefs {
+      // Apenas pesos de match (sem rating priority)
+      return pickWithMatchWeights(from: candidates, context: context, using: &gen)
+    } else if hasRatingPriority {
+      // Apenas pesos de rating (comportamento existente)
       return pickWithRatingPriority(from: candidates, using: &gen)
+    } else {
+      // Sorteio uniforme (fallback)
+      return candidates.randomElement(using: &gen)
     }
-    
-    return candidates.randomElement(using: &gen)
   }
-  
+
+  // MARK: - Weighted Selection Methods
+
   /// Seleciona com maior probabilidade para restaurantes bem avaliados
   /// Restaurantes com rating >= 4.0 têm 3x mais chance de serem escolhidos
   private func pickWithRatingPriority(
     from candidates: [Restaurant],
     using gen: inout RandomNumberGenerator
   ) -> Restaurant? {
-    // Criar pesos baseados no rating
-    let weights: [Double] = candidates.map { r in
+    let weights = calculateRatingWeights(for: candidates)
+    return pickWeighted(from: candidates, weights: weights, using: &gen)
+  }
+
+  /// Seleciona com ponderação baseada em preferências aprendidas (match de tags/categoria)
+  private func pickWithMatchWeights(
+    from candidates: [Restaurant],
+    context: PreferenceContext,
+    using gen: inout RandomNumberGenerator
+  ) -> Restaurant? {
+    guard let prefs = context.learnedPreferences else {
+      return candidates.randomElement(using: &gen)
+    }
+
+    let weights = candidates.map { prefs.sortingWeight(tags: $0.tags, category: $0.category) }
+    return pickWeighted(from: candidates, weights: weights, using: &gen)
+  }
+
+  /// Seleciona combinando pesos de match e rating
+  /// Fórmula: finalWeight = matchWeight * ratingMultiplier
+  private func pickWithCombinedWeights(
+    from candidates: [Restaurant],
+    context: PreferenceContext,
+    using gen: inout RandomNumberGenerator
+  ) -> Restaurant? {
+    guard let prefs = context.learnedPreferences else {
+      return pickWithRatingPriority(from: candidates, using: &gen)
+    }
+
+    let matchWeights = candidates.map { prefs.sortingWeight(tags: $0.tags, category: $0.category) }
+    let ratingWeights = calculateRatingWeights(for: candidates)
+
+    // Combinar: matchWeight * ratingMultiplier (normalizado)
+    let combinedWeights = zip(matchWeights, ratingWeights).map { $0 * $1 }
+
+    return pickWeighted(from: candidates, weights: combinedWeights, using: &gen)
+  }
+
+  // MARK: - Helper Methods
+
+  /// Calcula pesos baseados no rating
+  private func calculateRatingWeights(for candidates: [Restaurant]) -> [Double] {
+    candidates.map { r in
       if r.ratingCount > 0 && r.ratingAverage >= minHighRating {
         return 3.0 // 3x mais chance para bem avaliados
       } else if r.ratingCount > 0 {
@@ -104,10 +158,21 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
         return 1.0 // Peso padrão para não avaliados
       }
     }
-    
+  }
+
+  /// Realiza seleção ponderada genérica
+  private func pickWeighted(
+    from candidates: [Restaurant],
+    weights: [Double],
+    using gen: inout RandomNumberGenerator
+  ) -> Restaurant? {
+    guard !candidates.isEmpty, !weights.isEmpty else { return nil }
+
     let totalWeight = weights.reduce(0, +)
+    guard totalWeight > 0 else { return candidates.randomElement(using: &gen) }
+
     let randomValue = Double.random(in: 0..<totalWeight, using: &gen)
-    
+
     var cumulative = 0.0
     for (index, weight) in weights.enumerated() {
       cumulative += weight
@@ -115,7 +180,7 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
         return candidates[index]
       }
     }
-    
+
     // Fallback
     return candidates.last
   }

@@ -11,14 +11,19 @@ import SwiftUI
 struct RootView: View {
   @Environment(AppRouter.self) private var router
   @State private var hasCheckedOnboarding = false
+  @State private var isInitializing = true
 
   var body: some View {
     Group {
-      switch router.mainRoute {
-      case .onboarding:
-        OnboardingView()
-      case .mainTabs:
-        MainTabView()
+      if isInitializing {
+        LoadingView()
+      } else {
+        switch router.mainRoute {
+        case .onboarding:
+          OnboardingView()
+        case .mainTabs:
+          MainTabView()
+        }
       }
     }
     .onAppear {
@@ -30,11 +35,18 @@ struct RootView: View {
     guard !hasCheckedOnboarding else { return }
     hasCheckedOnboarding = true
 
-    // Decide initial route based on onboarding status
-    if OnboardingStorage.hasSeenOnboarding {
-      router.setMainRoute(.mainTabs)
-    } else {
-      router.setMainRoute(.onboarding)
+    // Pequeno delay para mostrar a animação de loading
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+      withAnimation {
+        isInitializing = false
+      }
+
+      // Decide initial route based on onboarding status
+      if OnboardingStorage.hasSeenOnboarding {
+        router.setMainRoute(.mainTabs)
+      } else {
+        router.setMainRoute(.onboarding)
+      }
     }
   }
 }

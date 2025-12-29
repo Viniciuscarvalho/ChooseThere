@@ -31,16 +31,29 @@ final class RouletteViewModel {
   // MARK: - Dependencies
 
   private let restaurantRepository: any RestaurantRepository
-  private let randomizer: any RestaurantRandomizerProtocol
+  private let smartRoulette: SmartRouletteProtocol
   private var drawnIds: Set<String> = []
   private var allRestaurants: [Restaurant] = []
 
   init(
     restaurantRepository: any RestaurantRepository,
-    randomizer: any RestaurantRandomizerProtocol = RestaurantRandomizer()
+    visitRepository: (any VisitRepository)? = nil,
+    smartRoulette: SmartRouletteProtocol? = nil
   ) {
     self.restaurantRepository = restaurantRepository
-    self.randomizer = randomizer
+    
+    // Criar SmartRouletteService se não fornecido
+    if let provided = smartRoulette {
+      self.smartRoulette = provided
+    } else if let visitRepo = visitRepository {
+      // Usar visitRepository fornecido para criar SmartRouletteService com anti-repetição
+      let recentHistory = RecentHistoryService(visitRepository: visitRepo)
+      self.smartRoulette = SmartRouletteService(recentHistoryProvider: recentHistory)
+    } else {
+      // Fallback: criar SmartRouletteService sem histórico
+      let mockHistory = MockRecentHistoryProvider()
+      self.smartRoulette = SmartRouletteService(recentHistoryProvider: mockHistory)
+    }
   }
 
   // MARK: - Actions
@@ -74,7 +87,7 @@ final class RouletteViewModel {
       priceTier: nil,
       userLocation: nil
     )
-    if let picked = randomizer.pick(from: allRestaurants, context: context, excludeRestaurantIDs: drawnIds) {
+    if let picked = smartRoulette.pick(from: allRestaurants, context: context, sessionExcludes: drawnIds) {
       drawnIds.insert(picked.id)
       startSpinAnimation(finalId: picked.id)
     } else {
@@ -114,6 +127,15 @@ final class RouletteViewModel {
       currentIndex += 1
       animateNextCard(finalId: finalId)
     }
+  }
+}
+
+// MARK: - Mock RecentHistoryProvider
+
+/// Mock que sempre retorna vazio (para compatibilidade quando VisitRepository não está disponível)
+private final class MockRecentHistoryProvider: RecentHistoryProviding {
+  func recentRestaurantIDs(limit: Int) throws -> [String] {
+    return []
   }
 }
 
