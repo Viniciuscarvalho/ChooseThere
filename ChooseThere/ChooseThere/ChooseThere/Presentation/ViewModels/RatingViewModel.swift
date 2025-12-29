@@ -37,15 +37,21 @@ final class RatingViewModel {
   let restaurantId: String
   private let visitRepository: any VisitRepository
   private let ratingAggregator: RestaurantRatingAggregator?
+  private let preferenceLearningService: PreferenceLearning
+  private let restaurantRepository: any RestaurantRepository
 
   init(
     restaurantId: String,
     visitRepository: any VisitRepository,
-    ratingAggregator: RestaurantRatingAggregator? = nil
+    ratingAggregator: RestaurantRatingAggregator? = nil,
+    preferenceLearningService: PreferenceLearning = PreferenceLearningService.makeDefault(),
+    restaurantRepository: any RestaurantRepository
   ) {
     self.restaurantId = restaurantId
     self.visitRepository = visitRepository
     self.ratingAggregator = ratingAggregator
+    self.preferenceLearningService = preferenceLearningService
+    self.restaurantRepository = restaurantRepository
   }
 
   // MARK: - Actions
@@ -88,12 +94,44 @@ final class RatingViewModel {
       // Atualizar snapshot de rating do restaurante
       ratingAggregator?.updateSnapshot(for: restaurantId)
       
+      // Aplicar aprendizado de preferências (assíncrono, não bloqueia o fluxo)
+      applyPreferenceLearning(visit: visit)
+      
       isSaving = false
       return true
     } catch {
       errorMessage = "Não foi possível salvar. Tente novamente."
       isSaving = false
       return false
+    }
+  }
+
+  // MARK: - Preference Learning
+
+  /// Aplica aprendizado de preferências baseado na avaliação
+  /// Executado de forma assíncrona e não bloqueia o fluxo de salvamento
+  private func applyPreferenceLearning(visit: Visit) {
+    Task {
+      do {
+        // Buscar dados do restaurante para obter categoria e tags
+        guard let restaurant = try restaurantRepository.fetch(id: restaurantId) else {
+          // Se não encontrar o restaurante, não aplica aprendizado
+          // Mas não falha o fluxo de avaliação
+          return
+        }
+
+        // Aplicar aprendizado com os dados do restaurante
+        // O serviço já verifica internamente se learningEnabled está ativo
+        preferenceLearningService.applyRating(
+          rating: visit.rating,
+          tags: restaurant.tags,
+          category: restaurant.category
+        )
+      } catch {
+        // Falha silenciosa: não queremos que erro no aprendizado quebre a avaliação
+        // Log para debug (opcional)
+        print("⚠️ RatingViewModel: Failed to apply preference learning: \(error)")
+      }
     }
   }
 }

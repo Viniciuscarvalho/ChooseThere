@@ -281,7 +281,8 @@ struct RatingView: View {
     viewModel = RatingViewModel(
       restaurantId: restaurantId,
       visitRepository: visitRepo,
-      ratingAggregator: ratingAggregator
+      ratingAggregator: ratingAggregator,
+      restaurantRepository: restaurantRepo
     )
   }
 }

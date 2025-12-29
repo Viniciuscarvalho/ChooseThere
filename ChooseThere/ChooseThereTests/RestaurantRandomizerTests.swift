@@ -414,10 +414,236 @@ final class RestaurantRandomizerTests: XCTestCase {
     var context = PreferenceContext()
     context.desiredTags = ["japanese"]
     context.ratingPriority = .only
-    
+
     let result = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
-    
+
     XCTAssertEqual(result?.id, "japanese-high")
+  }
+
+  // MARK: - Learned Preferences (Match Weighting)
+
+  func testMatchWeighting_NoPreferences_BehavesLikeRandom() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "a", category: "Japonês", tags: ["sushi"]),
+      Restaurant.fixture(id: "b", category: "Italiano", tags: ["pizza"]),
+      Restaurant.fixture(id: "c", category: "Brasileiro", tags: ["churrasco"])
+    ]
+    var context = PreferenceContext()
+    context.learnedPreferences = nil
+
+    // Sem preferências, todos devem ser candidatos
+    var found: Set<String> = []
+    for _ in 0..<100 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        found.insert(r.id)
+      }
+    }
+
+    XCTAssertEqual(found, ["a", "b", "c"], "All restaurants should be pickable without preferences")
+  }
+
+  func testMatchWeighting_EmptyPreferences_BehavesLikeRandom() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "a", category: "Japonês", tags: ["sushi"]),
+      Restaurant.fixture(id: "b", category: "Italiano", tags: ["pizza"])
+    ]
+    var context = PreferenceContext()
+    context.learnedPreferences = .empty()
+
+    // Preferências vazias = todos devem ser candidatos com probabilidade igual
+    var found: Set<String> = []
+    for _ in 0..<100 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        found.insert(r.id)
+      }
+    }
+
+    XCTAssertEqual(found, ["a", "b"], "All restaurants should be pickable with empty preferences")
+  }
+
+  func testMatchWeighting_FavorsHighMatchRestaurants() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "loved", category: "Japonês", tags: ["sushi"]),
+      Restaurant.fixture(id: "neutral", category: "Italiano", tags: ["pizza"])
+    ]
+
+    // Criar preferências que favorecem "sushi" e "Japonês"
+    var prefs = LearnedPreferences.empty()
+    prefs.setWeight(forTag: "sushi", weight: 3.0)
+    prefs.setWeight(forCategory: "Japonês", weight: 2.0)
+
+    var context = PreferenceContext()
+    context.learnedPreferences = prefs
+
+    // O restaurante "loved" deve ser escolhido mais frequentemente
+    var lovedCount = 0
+    var neutralCount = 0
+
+    for _ in 0..<200 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        if r.id == "loved" { lovedCount += 1 }
+        else { neutralCount += 1 }
+      }
+    }
+
+    // "loved" tem peso ~6.0 (1 + 3 + 2), "neutral" tem peso 1.0
+    // Então "loved" deve ser ~6x mais frequente
+    XCTAssertGreaterThan(lovedCount, neutralCount * 2, "Loved restaurant should be picked significantly more often")
+  }
+
+  func testMatchWeighting_NegativeWeightsReduceProbability() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "disliked", category: "FastFood", tags: ["hamburguer"]),
+      Restaurant.fixture(id: "neutral", category: "Outro", tags: ["outro"])
+    ]
+
+    // Criar preferências negativas para "hamburguer"
+    var prefs = LearnedPreferences.empty()
+    prefs.setWeight(forTag: "hamburguer", weight: -2.0)
+    prefs.setWeight(forCategory: "FastFood", weight: -1.0)
+
+    var context = PreferenceContext()
+    context.learnedPreferences = prefs
+
+    // O restaurante "neutral" deve ser escolhido mais frequentemente
+    var dislikedCount = 0
+    var neutralCount = 0
+
+    for _ in 0..<200 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        if r.id == "disliked" { dislikedCount += 1 }
+        else { neutralCount += 1 }
+      }
+    }
+
+    // "disliked" tem peso ~0.1 (clamped: 1 - 2 - 1 = -2, max(0.1, 1 + score) = 0.1)
+    // "neutral" tem peso 1.0
+    // Então "neutral" deve ser ~10x mais frequente
+    XCTAssertGreaterThan(neutralCount, dislikedCount * 3, "Neutral restaurant should be picked significantly more often")
+  }
+
+  func testMatchWeighting_DeterministicWithSeededRNG() {
+    let restaurants = [
+      Restaurant.fixture(id: "a", category: "Japonês", tags: ["sushi"]),
+      Restaurant.fixture(id: "b", category: "Italiano", tags: ["pizza"]),
+      Restaurant.fixture(id: "c", category: "Brasileiro", tags: ["churrasco"])
+    ]
+
+    var prefs = LearnedPreferences.empty()
+    prefs.setWeight(forTag: "sushi", weight: 2.0)
+
+    var rng1 = SeededRandomNumberGenerator(seed: 42)
+    var rng2 = SeededRandomNumberGenerator(seed: 42)
+
+    let randomizer1 = RestaurantRandomizer(rng: rng1)
+    let randomizer2 = RestaurantRandomizer(rng: rng2)
+
+    var context = PreferenceContext()
+    context.learnedPreferences = prefs
+
+    let result1 = randomizer1.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
+    let result2 = randomizer2.pick(from: restaurants, context: context, excludeRestaurantIDs: [])
+
+    XCTAssertEqual(result1?.id, result2?.id, "Same seed should produce same result with learned preferences")
+  }
+
+  func testMatchWeighting_CombinedWithRatingPriority() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "loved-rated", category: "Japonês", tags: ["sushi"], ratingAverage: 4.5, ratingCount: 5),
+      Restaurant.fixture(id: "loved-unrated", category: "Japonês", tags: ["sushi"], ratingAverage: 0, ratingCount: 0),
+      Restaurant.fixture(id: "neutral-rated", category: "Outro", tags: ["outro"], ratingAverage: 4.5, ratingCount: 5)
+    ]
+
+    var prefs = LearnedPreferences.empty()
+    prefs.setWeight(forTag: "sushi", weight: 3.0)
+    prefs.setWeight(forCategory: "Japonês", weight: 2.0)
+
+    var context = PreferenceContext()
+    context.learnedPreferences = prefs
+    context.ratingPriority = .prefer
+
+    // "loved-rated" deve ter o maior peso combinado
+    var lovedRatedCount = 0
+    var otherCount = 0
+
+    for _ in 0..<300 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        if r.id == "loved-rated" { lovedRatedCount += 1 }
+        else { otherCount += 1 }
+      }
+    }
+
+    // loved-rated: match ~6.0 * rating 3.0 = 18.0
+    // loved-unrated: match ~6.0 * rating 1.0 = 6.0
+    // neutral-rated: match 1.0 * rating 3.0 = 3.0
+    XCTAssertGreaterThan(lovedRatedCount, otherCount / 2, "Loved and rated should dominate picks")
+  }
+
+  func testMatchWeighting_WorksWithFilters() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "japanese-sushi", category: "Japonês", tags: ["sushi", "japanese"]),
+      Restaurant.fixture(id: "japanese-other", category: "Japonês", tags: ["tempura", "japanese"]),
+      Restaurant.fixture(id: "italian", category: "Italiano", tags: ["pizza", "italian"])
+    ]
+
+    var prefs = LearnedPreferences.empty()
+    prefs.setWeight(forTag: "sushi", weight: 5.0)
+
+    var context = PreferenceContext()
+    context.desiredTags = ["japanese"]
+    context.learnedPreferences = prefs
+
+    // Apenas restaurantes japoneses são candidatos, mas "sushi" é favorecido
+    var sushiCount = 0
+    var otherJapaneseCount = 0
+
+    for _ in 0..<200 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        if r.id == "japanese-sushi" { sushiCount += 1 }
+        else if r.id == "japanese-other" { otherJapaneseCount += 1 }
+        else { XCTFail("Italian should not be picked with japanese filter") }
+      }
+    }
+
+    XCTAssertGreaterThan(sushiCount, otherJapaneseCount, "Sushi restaurant should be favored due to learned preferences")
+  }
+
+  func testMatchWeighting_AllRestaurantsStillHaveChance() {
+    let randomizer = RestaurantRandomizer()
+    let restaurants = [
+      Restaurant.fixture(id: "loved", category: "Japonês", tags: ["sushi"]),
+      Restaurant.fixture(id: "hated", category: "FastFood", tags: ["hamburguer"])
+    ]
+
+    var prefs = LearnedPreferences.empty()
+    prefs.setWeight(forTag: "sushi", weight: LearnedPreferences.maxWeight)
+    prefs.setWeight(forCategory: "Japonês", weight: LearnedPreferences.maxWeight)
+    prefs.setWeight(forTag: "hamburguer", weight: LearnedPreferences.minWeight)
+    prefs.setWeight(forCategory: "FastFood", weight: LearnedPreferences.minWeight)
+
+    var context = PreferenceContext()
+    context.learnedPreferences = prefs
+
+    // Mesmo com preferências extremas, "hated" ainda deve aparecer ocasionalmente
+    // (peso mínimo é 0.1, não 0)
+    var lovedCount = 0
+    var hatedCount = 0
+
+    for _ in 0..<500 {
+      if let r = randomizer.pick(from: restaurants, context: context, excludeRestaurantIDs: []) {
+        if r.id == "loved" { lovedCount += 1 }
+        else { hatedCount += 1 }
+      }
+    }
+
+    XCTAssertGreaterThan(lovedCount, 0, "Loved should be picked")
+    XCTAssertGreaterThan(hatedCount, 0, "Even hated should have some chance (min weight 0.1)")
   }
 }
 

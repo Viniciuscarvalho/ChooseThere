@@ -31,14 +31,28 @@ final class PreferencesViewModel {
   // MARK: - Dependencies
 
   private let restaurantRepository: any RestaurantRepository
-  private let randomizer: any RestaurantRandomizerProtocol
+  private let smartRoulette: SmartRouletteProtocol
 
   init(
     restaurantRepository: any RestaurantRepository,
-    randomizer: any RestaurantRandomizerProtocol = RestaurantRandomizer()
+    visitRepository: (any VisitRepository)? = nil,
+    smartRoulette: SmartRouletteProtocol? = nil
   ) {
     self.restaurantRepository = restaurantRepository
-    self.randomizer = randomizer
+    
+    // Criar SmartRouletteService se não fornecido
+    if let provided = smartRoulette {
+      self.smartRoulette = provided
+    } else if let visitRepo = visitRepository {
+      // Usar visitRepository fornecido para criar SmartRouletteService com anti-repetição
+      let recentHistory = RecentHistoryService(visitRepository: visitRepo)
+      self.smartRoulette = SmartRouletteService(recentHistoryProvider: recentHistory)
+    } else {
+      // Fallback: criar SmartRouletteService sem histórico (comportamento antigo)
+      // Usa um mock RecentHistoryProvider que sempre retorna vazio
+      let mockHistory = MockRecentHistoryProvider()
+      self.smartRoulette = SmartRouletteService(recentHistoryProvider: mockHistory)
+    }
   }
 
   // MARK: - Actions
@@ -85,10 +99,10 @@ final class PreferencesViewModel {
     do {
       let restaurants = try restaurantRepository.fetchAll()
       let context = buildContext(userLocation: userLocation)
-      if let picked = randomizer.pick(
+      if let picked = smartRoulette.pick(
         from: restaurants,
         context: context,
-        excludeRestaurantIDs: drawnRestaurantIds
+        sessionExcludes: drawnRestaurantIds
       ) {
         drawnRestaurantIds.insert(picked.id)
         return picked.id
@@ -108,6 +122,15 @@ final class PreferencesViewModel {
   func resetSession() {
     drawnRestaurantIds.removeAll()
     reRollCount = 0
+  }
+}
+
+// MARK: - Mock RecentHistoryProvider
+
+/// Mock que sempre retorna vazio (para compatibilidade quando VisitRepository não está disponível)
+private final class MockRecentHistoryProvider: RecentHistoryProviding {
+  func recentRestaurantIDs(limit: Int) throws -> [String] {
+    return []
   }
 }
 

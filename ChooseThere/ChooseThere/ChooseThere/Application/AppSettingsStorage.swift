@@ -66,12 +66,16 @@ enum AppSettingsStorage {
   private static let nearbyRadiusKmKey = "nearbyRadiusKm"
   private static let nearbyLastCategoryKey = "nearbyLastCategory"
   private static let searchModeKey = "searchMode"
+  private static let learningEnabledKey = "learningEnabled"
+  private static let avoidRepeatsLimitKey = "avoidRepeatsLimit"
 
   // MARK: - Defaults
 
   static let defaultRadiusKm = 3
   static let defaultNearbySource: NearbySource = .localBase
   static let defaultSearchMode: SearchMode = .myList
+  static let defaultLearningEnabled = true
+  static let defaultAvoidRepeatsLimit = 10
 
   // MARK: - Selected City
 
@@ -164,6 +168,45 @@ enum AppSettingsStorage {
     }
   }
 
+  // MARK: - Preference Learning
+
+  /// Indica se o sistema de "Preferências que aprendem" está ativo
+  static var learningEnabled: Bool {
+    get {
+      // Se nunca foi setado, retorna o default (true)
+      if !UserDefaults.standard.dictionaryRepresentation().keys.contains(learningEnabledKey) {
+        return defaultLearningEnabled
+      }
+      return UserDefaults.standard.bool(forKey: learningEnabledKey)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: learningEnabledKey)
+    }
+  }
+
+  /// Limite de repetições a evitar (últimos N restaurantes)
+  /// Range válido: 0-50 (0 = desativado)
+  static var avoidRepeatsLimit: Int {
+    get {
+      let stored = UserDefaults.standard.integer(forKey: avoidRepeatsLimitKey)
+      // Se nunca foi setado, retorna default
+      if stored == 0 && !UserDefaults.standard.dictionaryRepresentation().keys.contains(avoidRepeatsLimitKey) {
+        return defaultAvoidRepeatsLimit
+      }
+      // Clamp para range válido
+      return max(0, min(50, stored))
+    }
+    set {
+      let clamped = max(0, min(50, newValue))
+      UserDefaults.standard.set(clamped, forKey: avoidRepeatsLimitKey)
+    }
+  }
+
+  /// Indica se o sistema de anti-repetição está ativo
+  static var avoidRepeatsEnabled: Bool {
+    avoidRepeatsLimit > 0
+  }
+
   // MARK: - Reset
 
   /// Reseta todas as preferências (útil para testes)
@@ -173,6 +216,15 @@ enum AppSettingsStorage {
     UserDefaults.standard.removeObject(forKey: nearbyRadiusKmKey)
     nearbyLastCategory = nil
     searchMode = defaultSearchMode
+    UserDefaults.standard.removeObject(forKey: learningEnabledKey)
+    UserDefaults.standard.removeObject(forKey: avoidRepeatsLimitKey)
+  }
+
+  /// Reseta apenas as configurações de aprendizado
+  static func resetLearningSettings() {
+    UserDefaults.standard.removeObject(forKey: learningEnabledKey)
+    UserDefaults.standard.removeObject(forKey: avoidRepeatsLimitKey)
+    LearnedPreferencesStore().reset()
   }
 
   /// Indica se o onboarding de cidade foi completado
