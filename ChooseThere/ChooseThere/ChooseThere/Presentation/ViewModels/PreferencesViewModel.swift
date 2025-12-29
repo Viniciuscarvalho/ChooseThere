@@ -97,7 +97,17 @@ final class PreferencesViewModel {
   /// Returns a restaurant id, or nil if none found
   func draw(userLocation: CLLocationCoordinate2D? = nil) -> String? {
     do {
-      let restaurants = try restaurantRepository.fetchAll()
+      var restaurants = try restaurantRepository.fetchAll()
+      
+      // Filtrar por cidade selecionada se não for "Any City"
+      if let cityKey = AppSettingsStorage.selectedCityKey,
+         let parsed = AppSettingsStorage.parseSelectedCity() {
+        restaurants = restaurants.filter { restaurant in
+          restaurant.city.lowercased() == parsed.city.lowercased() &&
+          restaurant.state.lowercased() == parsed.state.lowercased()
+        }
+      }
+      
       let context = buildContext(userLocation: userLocation)
       if let picked = smartRoulette.pick(
         from: restaurants,

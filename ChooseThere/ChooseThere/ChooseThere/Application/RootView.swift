@@ -35,18 +35,16 @@ struct RootView: View {
     guard !hasCheckedOnboarding else { return }
     hasCheckedOnboarding = true
 
-    // Pequeno delay para mostrar a animação de loading
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-      withAnimation {
-        isInitializing = false
-      }
+    // Inicialização imediata - removido delay desnecessário que travava a app
+    withAnimation(.easeOut(duration: 0.2)) {
+      isInitializing = false
+    }
 
-      // Decide initial route based on onboarding status
-      if OnboardingStorage.hasSeenOnboarding {
-        router.setMainRoute(.mainTabs)
-      } else {
-        router.setMainRoute(.onboarding)
-      }
+    // Decide initial route based on onboarding status
+    if OnboardingStorage.hasSeenOnboarding {
+      router.setMainRoute(.mainTabs)
+    } else {
+      router.setMainRoute(.onboarding)
     }
   }
 }

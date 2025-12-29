@@ -30,11 +30,19 @@ final class RestaurantListViewModel {
   // MARK: - Dependencies
 
   private let restaurantRepository: RestaurantRepository
+  private let appleMapsService: AppleMapsNearbySearchService
+  private let cityGeocodingService: CityGeocodingService.Type
 
   // MARK: - Init
 
-  init(restaurantRepository: RestaurantRepository) {
+  init(
+    restaurantRepository: RestaurantRepository,
+    appleMapsService: AppleMapsNearbySearchService = AppleMapsNearbySearchService(),
+    cityGeocodingService: CityGeocodingService.Type = CityGeocodingService.self
+  ) {
     self.restaurantRepository = restaurantRepository
+    self.appleMapsService = appleMapsService
+    self.cityGeocodingService = cityGeocodingService
   }
 
   // MARK: - Public Methods
@@ -43,14 +51,99 @@ final class RestaurantListViewModel {
     isLoading = true
     errorMessage = nil
 
+    Task {
+      do {
+        var allRestaurants = try restaurantRepository.fetchAll()
+        
+        // Filtrar por cidade selecionada se não for "Any City"
+        if AppSettingsStorage.selectedCityKey != nil,
+           let parsed = AppSettingsStorage.parseSelectedCity() {
+          let cityFiltered = allRestaurants.filter { restaurant in
+            restaurant.city.lowercased() == parsed.city.lowercased() &&
+            restaurant.state.lowercased() == parsed.state.lowercased()
+          }
+          
+          // Se não encontrou restaurantes locais para a cidade, buscar no Apple Maps
+          if cityFiltered.isEmpty {
+            await loadRestaurantsFromAppleMaps(city: parsed.city, state: parsed.state)
+            return
+          }
+          
+          allRestaurants = cityFiltered
+        }
+        
+        await MainActor.run {
+          restaurants = allRestaurants
+          extractCategories()
+          applyFilters()
+          isLoading = false
+        }
+      } catch {
+        await MainActor.run {
+          errorMessage = "Erro ao carregar restaurantes: \(error.localizedDescription)"
+          isLoading = false
+        }
+      }
+    }
+  }
+  
+  /// Carrega restaurantes do Apple Maps quando a cidade não está no JSON local
+  private func loadRestaurantsFromAppleMaps(city: String, state: String) async {
+    // Obter coordenadas da cidade
+    guard let cityCoordinate = await cityGeocodingService.getCoordinates(city: city, state: state) else {
+      await MainActor.run {
+        errorMessage = "Não foi possível encontrar a localização de \(city), \(state)"
+        isLoading = false
+      }
+      return
+    }
+    
+    // Buscar restaurantes próximos usando Apple Maps
     do {
-      restaurants = try restaurantRepository.fetchAll()
-      extractCategories()
-      applyFilters()
-      isLoading = false
+      let places = try await appleMapsService.search(
+        radiusKm: 10, // Raio maior para cidade
+        category: nil as String?,
+        userCoordinate: cityCoordinate,
+        cityHint: city
+      )
+      
+      // Converter NearbyPlace para Restaurant (apenas para exibição na lista)
+      // Nota: Estes não serão persistidos no SwiftData
+      let restaurantsFromPlaces = places.map { place in
+        Restaurant(
+          id: place.id,
+          name: place.name,
+          category: place.categoryHint ?? "Restaurante",
+          address: place.address ?? "",
+          city: city,
+          state: state,
+          tags: [],
+          notes: "",
+          externalLink: place.externalLink,
+          lat: place.latitude,
+          lng: place.longitude,
+          isFavorite: false,
+          applePlaceResolved: true,
+          applePlaceResolvedAt: Date(),
+          applePlaceName: place.name,
+          applePlaceAddress: place.address,
+          ratingAverage: 0,
+          ratingCount: 0,
+          ratingLastVisitedAt: nil
+        )
+      }
+      
+      await MainActor.run {
+        restaurants = restaurantsFromPlaces
+        extractCategories()
+        applyFilters()
+        isLoading = false
+      }
     } catch {
-      errorMessage = "Erro ao carregar restaurantes: \(error.localizedDescription)"
-      isLoading = false
+      await MainActor.run {
+        errorMessage = "Erro ao buscar restaurantes em \(city): \(error.localizedDescription)"
+        isLoading = false
+      }
     }
   }
 

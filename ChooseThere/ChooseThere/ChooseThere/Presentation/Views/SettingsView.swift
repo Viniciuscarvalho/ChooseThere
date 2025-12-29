@@ -69,42 +69,7 @@ struct SettingsView: View {
   // MARK: - Body
 
   var body: some View {
-    NavigationStack {
-      ZStack {
-        AppColors.background.ignoresSafeArea()
-
-        List {
-          // Seção: Cidade
-          citySection
-
-          // Seção: Perto de mim
-          nearbySection
-
-          // Seção: Coleção do casal
-          backupSection
-
-          // Seção: Preferências que aprendem
-          preferenceLearningSection
-
-          // Seção: Cache
-          cacheSection
-
-          // Seção: Sobre
-          aboutSection
-        }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-      }
-      .navigationTitle("Configurações")
-      .navigationBarTitleDisplayMode(.large)
-      .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Fechar") {
-            dismiss()
-          }
-          .foregroundStyle(AppColors.primary)
-        }
-      }
+    navigationContent
       .sheet(isPresented: $showingCitySelection) {
         CitySelectionView(
           onCitySelected: { city in
@@ -213,7 +178,54 @@ struct SettingsView: View {
       } message: {
         Text("Isso apagará todos os pesos aprendidos e voltará ao estado inicial. O app começará a aprender novamente a partir das próximas avaliações.")
       }
+  }
+  
+  private var navigationContent: some View {
+    NavigationStack {
+      ZStack {
+        AppColors.background.ignoresSafeArea()
+        settingsList
+      }
+      .navigationTitle("Configurações")
+      .navigationBarTitleDisplayMode(.large)
+      .toolbarBackground(AppColors.background, for: .navigationBar)
+      .toolbarBackground(.visible, for: .navigationBar)
+      .toolbarColorScheme(.light, for: .navigationBar)
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Fechar") {
+            dismiss()
+          }
+          .foregroundStyle(AppColors.primary)
+        }
+      }
     }
+  }
+
+  // MARK: - Settings List
+  
+  private var settingsList: some View {
+    List {
+      // Seção: Cidade
+      citySection
+
+      // Seção: Perto de mim
+      nearbySection
+
+      // Seção: Coleção do casal
+      backupSection
+
+      // Seção: Preferências que aprendem
+      preferenceLearningSection
+
+      // Seção: Cache
+      cacheSection
+
+      // Seção: Sobre
+      aboutSection
+    }
+    .listStyle(.insetGrouped)
+    .scrollContentBackground(.hidden)
   }
 
   // MARK: - City Section
@@ -246,8 +258,10 @@ struct SettingsView: View {
       .listRowBackground(AppColors.surface)
     } header: {
       Text("Localização")
+        .foregroundStyle(AppColors.textPrimary)
     } footer: {
       Text("A cidade selecionada é usada para filtrar restaurantes da sua lista.")
+        .foregroundStyle(AppColors.textSecondary)
     }
   }
 
@@ -306,8 +320,10 @@ struct SettingsView: View {
       .listRowBackground(AppColors.surface)
     } header: {
       Text("Perto de mim")
+        .foregroundStyle(AppColors.textPrimary)
     } footer: {
       Text("Configurações padrão para o modo \"Perto de mim\". Você pode ajustar temporariamente durante a busca.")
+        .foregroundStyle(AppColors.textSecondary)
     }
   }
 
@@ -362,8 +378,10 @@ struct SettingsView: View {
       .listRowBackground(AppColors.surface)
     } header: {
       Text("Coleção do casal")
+        .foregroundStyle(AppColors.textPrimary)
     } footer: {
       Text("Exporte sua coleção para compartilhar com outra pessoa, ou importe um backup recebido.")
+        .foregroundStyle(AppColors.textSecondary)
     }
   }
 
@@ -446,11 +464,14 @@ struct SettingsView: View {
       }
     } header: {
       Text("Preferências que aprendem")
+        .foregroundStyle(AppColors.textPrimary)
     } footer: {
       if learningEnabled {
         Text("O app ajusta suas preferências com base nas suas avaliações. Lugares que você gostou têm maior chance de serem sorteados.")
+          .foregroundStyle(AppColors.textSecondary)
       } else {
         Text("Quando desativado, o sorteio funciona de forma aleatória, sem considerar suas avaliações anteriores.")
+          .foregroundStyle(AppColors.textSecondary)
       }
     }
   }
@@ -486,8 +507,10 @@ struct SettingsView: View {
       .listRowBackground(AppColors.surface)
     } header: {
       Text("Cache")
+        .foregroundStyle(AppColors.textPrimary)
     } footer: {
       Text("O cache armazena resultados de buscas recentes para acelerar o carregamento.")
+        .foregroundStyle(AppColors.textSecondary)
     }
   }
 
@@ -512,6 +535,7 @@ struct SettingsView: View {
       .listRowBackground(AppColors.surface)
     } header: {
       Text("Sobre")
+        .foregroundStyle(AppColors.textPrimary)
     }
   }
 
