@@ -42,6 +42,20 @@ protocol RestaurantRepository {
   
   /// Busca restaurantes que ainda não foram resolvidos via Apple Maps
   func fetchUnresolvedLocations() throws -> [Restaurant]
+  
+  // MARK: - External Links
+  
+  /// Atualiza os links externos do restaurante (TripAdvisor, iFood, 99, imagem)
+  func updateExternalLinks(
+    id: String,
+    tripAdvisorURL: URL?,
+    iFoodURL: URL?,
+    ride99URL: URL?,
+    imageURL: URL?
+  ) throws
+  
+  /// Atualiza apenas o site externo (externalLink) do restaurante
+  func updateExternalLink(id: String, externalLink: URL?) throws
 }
 
 

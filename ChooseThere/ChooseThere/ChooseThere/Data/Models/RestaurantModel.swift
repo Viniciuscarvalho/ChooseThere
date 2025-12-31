@@ -44,6 +44,17 @@ final class RestaurantModel {
   var ratingCount: Int = 0
   /// Data da última visita avaliada
   var ratingLastVisitedAt: Date? = nil
+  
+  // MARK: - External Links (Manual/Curated)
+  
+  /// URL do restaurante no TripAdvisor (página exata)
+  var tripAdvisorURL: String? = nil
+  /// URL do restaurante no iFood (loja/cardápio)
+  var iFoodURL: String? = nil
+  /// URL do 99 ou link de corrida (opcional; fallback para rota no Maps)
+  var ride99URL: String? = nil
+  /// URL de imagem do restaurante (curada manualmente, maior prioridade)
+  var imageURL: String? = nil
 
   init(
     id: String,
@@ -64,7 +75,11 @@ final class RestaurantModel {
     applePlaceAddress: String? = nil,
     ratingAverage: Double = 0,
     ratingCount: Int = 0,
-    ratingLastVisitedAt: Date? = nil
+    ratingLastVisitedAt: Date? = nil,
+    tripAdvisorURL: String? = nil,
+    iFoodURL: String? = nil,
+    ride99URL: String? = nil,
+    imageURL: String? = nil
   ) {
     self.id = id
     self.name = name
@@ -85,6 +100,10 @@ final class RestaurantModel {
     self.ratingAverage = ratingAverage
     self.ratingCount = ratingCount
     self.ratingLastVisitedAt = ratingLastVisitedAt
+    self.tripAdvisorURL = tripAdvisorURL
+    self.iFoodURL = iFoodURL
+    self.ride99URL = ride99URL
+    self.imageURL = imageURL
   }
 }
 

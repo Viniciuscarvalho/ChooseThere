@@ -217,8 +217,8 @@ final class PreferenceLearningIntegrationTests: XCTestCase {
     context.learnedPreferences = prefs
 
     // Usar RNG com seed fixo
-    var rng1 = SeededRandomNumberGenerator(seed: 42)
-    var rng2 = SeededRandomNumberGenerator(seed: 42)
+    var rng1 = SeededRNG(seed: 42)
+    var rng2 = SeededRNG(seed: 42)
 
     let randomizer1 = RestaurantRandomizer(rng: rng1)
     let randomizer2 = RestaurantRandomizer(rng: rng2)
@@ -258,7 +258,7 @@ final class PreferenceLearningIntegrationTests: XCTestCase {
 
 // MARK: - Seeded RNG Helper
 
-private struct SeededRandomNumberGenerator: RandomNumberGenerator {
+private struct SeededRNG: RandomNumberGenerator {
   private var seed: UInt64
 
   init(seed: UInt64 = 0) {

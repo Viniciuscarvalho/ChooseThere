@@ -237,7 +237,7 @@ struct ResultView: View {
       }
     }
   }
-
+  
   // MARK: - Error View
 
   private func errorView(message: String) -> some View {

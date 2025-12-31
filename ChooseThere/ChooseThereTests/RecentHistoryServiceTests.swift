@@ -12,13 +12,13 @@ final class RecentHistoryServiceTests: XCTestCase {
   // MARK: - Properties
 
   private var sut: RecentHistoryService!
-  private var mockRepository: MockVisitRepository!
+  private var mockRepository: MockHistoryVisitRepository!
 
   // MARK: - Setup/Teardown
 
   override func setUp() {
     super.setUp()
-    mockRepository = MockVisitRepository()
+    mockRepository = MockHistoryVisitRepository()
     sut = RecentHistoryService(visitRepository: mockRepository)
   }
 
@@ -40,7 +40,7 @@ final class RecentHistoryServiceTests: XCTestCase {
 
   func testRecentRestaurantIDs_LimitZero_ReturnsEmpty() throws {
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "a")
+      Visit.historyFixture(restaurantId: "a")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 0)
@@ -50,7 +50,7 @@ final class RecentHistoryServiceTests: XCTestCase {
 
   func testRecentRestaurantIDs_LimitNegative_ReturnsEmpty() throws {
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "a")
+      Visit.historyFixture(restaurantId: "a")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: -5)
@@ -60,7 +60,7 @@ final class RecentHistoryServiceTests: XCTestCase {
 
   func testRecentRestaurantIDs_SingleVisit_ReturnsThatID() throws {
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "restaurant-1")
+      Visit.historyFixture(restaurantId: "restaurant-1")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 10)
@@ -71,9 +71,9 @@ final class RecentHistoryServiceTests: XCTestCase {
   func testRecentRestaurantIDs_MultipleVisits_ReturnsInOrder() throws {
     // Visitas ordenadas do mais recente ao mais antigo
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "recent"),
-      Visit.fixture(restaurantId: "middle"),
-      Visit.fixture(restaurantId: "old")
+      Visit.historyFixture(restaurantId: "recent"),
+      Visit.historyFixture(restaurantId: "middle"),
+      Visit.historyFixture(restaurantId: "old")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 10)
@@ -84,10 +84,10 @@ final class RecentHistoryServiceTests: XCTestCase {
   func testRecentRestaurantIDs_DuplicateVisits_ReturnsUniqueIDs() throws {
     // Mesmo restaurante visitado múltiplas vezes
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "a"), // Mais recente
-      Visit.fixture(restaurantId: "b"),
-      Visit.fixture(restaurantId: "a"), // Duplicado (mais antigo)
-      Visit.fixture(restaurantId: "c")
+      Visit.historyFixture(restaurantId: "a"), // Mais recente
+      Visit.historyFixture(restaurantId: "b"),
+      Visit.historyFixture(restaurantId: "a"), // Duplicado (mais antigo)
+      Visit.historyFixture(restaurantId: "c")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 10)
@@ -98,11 +98,11 @@ final class RecentHistoryServiceTests: XCTestCase {
 
   func testRecentRestaurantIDs_LimitLessThanTotal_RespectsLimit() throws {
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "1"),
-      Visit.fixture(restaurantId: "2"),
-      Visit.fixture(restaurantId: "3"),
-      Visit.fixture(restaurantId: "4"),
-      Visit.fixture(restaurantId: "5")
+      Visit.historyFixture(restaurantId: "1"),
+      Visit.historyFixture(restaurantId: "2"),
+      Visit.historyFixture(restaurantId: "3"),
+      Visit.historyFixture(restaurantId: "4"),
+      Visit.historyFixture(restaurantId: "5")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 3)
@@ -113,8 +113,8 @@ final class RecentHistoryServiceTests: XCTestCase {
 
   func testRecentRestaurantIDs_LimitMoreThanTotal_ReturnsAll() throws {
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "1"),
-      Visit.fixture(restaurantId: "2")
+      Visit.historyFixture(restaurantId: "1"),
+      Visit.historyFixture(restaurantId: "2")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 100)
@@ -125,9 +125,9 @@ final class RecentHistoryServiceTests: XCTestCase {
 
   func testRecentRestaurantIDs_LimitExactlyTotal_ReturnsAll() throws {
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "1"),
-      Visit.fixture(restaurantId: "2"),
-      Visit.fixture(restaurantId: "3")
+      Visit.historyFixture(restaurantId: "1"),
+      Visit.historyFixture(restaurantId: "2"),
+      Visit.historyFixture(restaurantId: "3")
     ]
 
     let result = try sut.recentRestaurantIDs(limit: 3)
@@ -138,11 +138,11 @@ final class RecentHistoryServiceTests: XCTestCase {
   func testRecentRestaurantIDs_DuplicatesCountedOnce_LimitApplied() throws {
     // 5 visitas mas apenas 3 restaurantes únicos
     mockRepository.visits = [
-      Visit.fixture(restaurantId: "a"),
-      Visit.fixture(restaurantId: "a"),
-      Visit.fixture(restaurantId: "b"),
-      Visit.fixture(restaurantId: "b"),
-      Visit.fixture(restaurantId: "c")
+      Visit.historyFixture(restaurantId: "a"),
+      Visit.historyFixture(restaurantId: "a"),
+      Visit.historyFixture(restaurantId: "b"),
+      Visit.historyFixture(restaurantId: "b"),
+      Visit.historyFixture(restaurantId: "c")
     ]
 
     // Limit 2 deve retornar apenas os 2 primeiros únicos
@@ -160,7 +160,7 @@ final class RecentHistoryServiceTests: XCTestCase {
 
 // MARK: - Mock Visit Repository
 
-private class MockVisitRepository: VisitRepository {
+private class MockHistoryVisitRepository: VisitRepository {
   var visits: [Visit] = []
   var shouldThrow = false
 
@@ -191,7 +191,7 @@ private class MockVisitRepository: VisitRepository {
 // MARK: - Visit Fixture
 
 private extension Visit {
-  static func fixture(
+  static func historyFixture(
     id: UUID = UUID(),
     restaurantId: String,
     dateVisited: Date = Date(),

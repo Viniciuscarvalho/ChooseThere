@@ -18,6 +18,9 @@ final class LocationEnrichmentManager {
   /// Indica se o batch está em execução
   private(set) var isRunning = false
   
+  /// Indica se está em processo de cancelamento
+  private(set) var isCancelling = false
+  
   /// Progresso atual (0.0 a 1.0)
   private(set) var progress: Double = 0
   
@@ -33,12 +36,18 @@ final class LocationEnrichmentManager {
   
   /// Mensagem de status para exibir na UI
   var statusMessage: String {
+    if isCancelling {
+      return "Cancelando..."
+    }
     if isRunning {
       if let current = currentRestaurantName {
         return "Processando: \(current)"
       }
       return "Iniciando..."
     } else if let result = lastResult {
+      if result.cancelled {
+        return "Cancelado: \(result.success) resolvidos, \(result.failed) falhas"
+      }
       return "Concluído: \(result.success) resolvidos, \(result.failed) falhas"
     }
     return "Pronto para enriquecer"
@@ -47,6 +56,7 @@ final class LocationEnrichmentManager {
   // MARK: - Dependencies
   
   private var enrichmentService: RestaurantLocationEnrichmentService?
+  private var enrichmentTask: Task<BatchResult, Never>?
   private let logger = Logger(subsystem: "ChooseThere", category: "EnrichmentManager")
   
   // MARK: - Public API
@@ -73,6 +83,7 @@ final class LocationEnrichmentManager {
     }
     
     isRunning = true
+    isCancelling = false
     progress = 0
     processedCount = 0
     totalCount = 0
@@ -81,25 +92,43 @@ final class LocationEnrichmentManager {
     
     logger.info("Starting batch enrichment")
     
-    let result = await service.enrichAll { [weak self] batchProgress in
-      Task { @MainActor in
-        self?.updateProgress(batchProgress)
+    // Criar task para poder cancelar posteriormente
+    enrichmentTask = Task {
+      await service.enrichAll { [weak self] batchProgress in
+        Task { @MainActor in
+          self?.updateProgress(batchProgress)
+        }
       }
     }
+    
+    // Aguardar resultado da task
+    let result = await enrichmentTask?.value ?? .empty
     
     // Finalizar
     lastResult = result
     isRunning = false
-    progress = 1.0
+    isCancelling = false
+    progress = result.cancelled ? progress : 1.0
     currentRestaurantName = nil
+    enrichmentTask = nil
     
-    logger.info("Batch enrichment completed")
+    if result.cancelled {
+      logger.info("Batch enrichment was cancelled")
+    } else {
+      logger.info("Batch enrichment completed")
+    }
   }
   
-  /// Cancela o enriquecimento em andamento (para implementação futura)
+  /// Cancela o enriquecimento em andamento
   func cancel() {
-    // TODO: Implementar cancelamento via Task cancellation
-    logger.info("Cancel requested (not implemented yet)")
+    guard isRunning, let task = enrichmentTask else {
+      logger.info("No enrichment task to cancel")
+      return
+    }
+    
+    isCancelling = true
+    task.cancel()
+    logger.info("Enrichment cancellation requested")
   }
   
   // MARK: - Private
@@ -111,6 +140,7 @@ final class LocationEnrichmentManager {
     self.currentRestaurantName = batchProgress.current
   }
 }
+
 
 
 
