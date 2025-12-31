@@ -98,12 +98,12 @@ final class RestaurantLocationEnrichmentService {
   
   // MARK: - Batch Resolve
   
-  /// Resolve múltiplos restaurantes com throttling
+  /// Resolve múltiplos restaurantes com throttling e suporte a cancelamento
   /// - Parameters:
   ///   - limit: Número máximo de restaurantes a processar (nil = todos)
   ///   - concurrency: Número de resoluções simultâneas
   ///   - onProgress: Callback opcional para reportar progresso
-  /// - Returns: Estatísticas do batch
+  /// - Returns: Estatísticas do batch (inclui flag cancelled se interrompido)
   func resolveUnresolved(
     limit: Int? = nil,
     concurrency: Int = 2,
@@ -114,6 +114,9 @@ final class RestaurantLocationEnrichmentService {
     var skippedCount = 0
     
     do {
+      // Verificar cancelamento antes de iniciar
+      try Task.checkCancellation()
+      
       let unresolved = try restaurantRepository.fetchUnresolvedLocations()
       let batch = limit != nil ? Array(unresolved.prefix(limit!)) : unresolved
       let totalCount = batch.count
@@ -126,16 +129,28 @@ final class RestaurantLocationEnrichmentService {
       
       // Processar em grupos para limitar concorrência
       for chunk in batch.chunked(into: concurrency) {
-        await withTaskGroup(of: (String, String, LocationEnrichmentResult).self) { group in
+        // Verificar cancelamento antes de cada chunk
+        if Task.isCancelled {
+          logger.info("Batch cancelled by user")
+          return .cancelled(success: successCount, failed: failedCount, skipped: skippedCount)
+        }
+        
+        await withTaskGroup(of: (name: String, result: LocationEnrichmentResult).self) { group in
           for restaurant in chunk {
-            group.addTask {
+            // Usar addTaskUnlessCancelled para respeitar cancelamento
+            let added = group.addTaskUnlessCancelled {
               let result = await self.resolve(restaurantId: restaurant.id)
-              return (restaurant.id, restaurant.name, result)
+              return (name: restaurant.name, result: result)
             }
+            
+            // Se não conseguiu adicionar (cancelado), sair do loop
+            if !added { break }
           }
           
-          for await (id, name, result) in group {
+          for await item in group {
             processedCount += 1
+            let name = item.name
+            let result = item.result
             
             switch result {
             case .success:
@@ -151,17 +166,33 @@ final class RestaurantLocationEnrichmentService {
           }
         }
         
+        // Verificar cancelamento após processar chunk
+        if Task.isCancelled {
+          logger.info("Batch cancelled after chunk processing")
+          return .cancelled(success: successCount, failed: failedCount, skipped: skippedCount)
+        }
+        
         // Pequena pausa entre chunks para não sobrecarregar o MapKit
-        try? await Task.sleep(for: .milliseconds(500))
+        // Usar do/catch para parar se cancelado durante o sleep
+        do {
+          try await Task.sleep(for: .milliseconds(500))
+        } catch {
+          // CancellationError durante sleep - retornar como cancelado
+          logger.info("Batch cancelled during throttle pause")
+          return .cancelled(success: successCount, failed: failedCount, skipped: skippedCount)
+        }
       }
       
       logger.info("Batch complete: \(successCount) success, \(failedCount) failed, \(skippedCount) skipped")
       
+    } catch is CancellationError {
+      logger.info("Batch cancelled")
+      return .cancelled(success: successCount, failed: failedCount, skipped: skippedCount)
     } catch {
       logger.error("Batch resolve failed: \(error.localizedDescription)")
     }
     
-    return BatchResult(success: successCount, failed: failedCount, skipped: skippedCount)
+    return BatchResult(success: successCount, failed: failedCount, skipped: skippedCount, cancelled: false)
   }
   
   /// Enriquece todos os restaurantes não resolvidos
@@ -193,8 +224,19 @@ struct BatchResult: Sendable {
   let success: Int
   let failed: Int
   let skipped: Int
+  let cancelled: Bool
   
   var total: Int { success + failed + skipped }
+  
+  /// Cria um resultado vazio (para casos de erro ou cancelamento precoce)
+  static var empty: BatchResult {
+    BatchResult(success: 0, failed: 0, skipped: 0, cancelled: false)
+  }
+  
+  /// Cria um resultado de cancelamento
+  static func cancelled(success: Int, failed: Int, skipped: Int) -> BatchResult {
+    BatchResult(success: success, failed: failed, skipped: skipped, cancelled: true)
+  }
 }
 
 // MARK: - Errors

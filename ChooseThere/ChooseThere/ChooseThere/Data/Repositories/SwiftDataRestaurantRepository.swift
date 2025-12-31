@@ -101,6 +101,37 @@ final class SwiftDataRestaurantRepository: RestaurantRepository {
     let models = try context.fetch(descriptor)
     return models.map { Restaurant(from: $0) }
   }
+  
+  // MARK: - External Links
+  
+  func updateExternalLinks(
+    id: String,
+    tripAdvisorURL: URL?,
+    iFoodURL: URL?,
+    ride99URL: URL?,
+    imageURL: URL?
+  ) throws {
+    var descriptor = FetchDescriptor<RestaurantModel>(predicate: #Predicate { $0.id == id })
+    descriptor.fetchLimit = 1
+    guard let model = try context.fetch(descriptor).first else { return }
+    
+    model.tripAdvisorURL = tripAdvisorURL?.absoluteString
+    model.iFoodURL = iFoodURL?.absoluteString
+    model.ride99URL = ride99URL?.absoluteString
+    model.imageURL = imageURL?.absoluteString
+    
+    try context.save()
+  }
+  
+  func updateExternalLink(id: String, externalLink: URL?) throws {
+    var descriptor = FetchDescriptor<RestaurantModel>(predicate: #Predicate { $0.id == id })
+    descriptor.fetchLimit = 1
+    guard let model = try context.fetch(descriptor).first else { return }
+    
+    model.externalLink = externalLink?.absoluteString
+    
+    try context.save()
+  }
 }
 
 

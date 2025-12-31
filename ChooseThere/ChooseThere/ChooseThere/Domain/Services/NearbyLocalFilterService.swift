@@ -13,6 +13,14 @@ import Foundation
 /// Serviço que filtra restaurantes locais por distância e categoria
 /// Utiliza a fórmula de haversine do CoreLocation para cálculo de distância
 struct NearbyLocalFilterService {
+  // MARK: - String normalization (diacritic/case insensitive)
+  
+  private func normalized(_ value: String) -> String {
+    value
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+  }
+  
   /// Filtra restaurantes por distância e categoria
   /// - Parameters:
   ///   - restaurants: Lista de restaurantes para filtrar
@@ -43,12 +51,13 @@ struct NearbyLocalFilterService {
     }
 
     // Filtrar por categoria/tag se especificada
-    if let category = category?.lowercased(), !category.isEmpty {
+    if let rawCategory = category, !normalized(rawCategory).isEmpty {
+      let categoryNeedle = normalized(rawCategory)
       filtered = filtered.filter { restaurant in
         // Verifica se a categoria do restaurante contém o termo
-        let categoryMatch = restaurant.category.lowercased().contains(category)
+        let categoryMatch = normalized(restaurant.category).contains(categoryNeedle)
         // Verifica se alguma tag contém o termo
-        let tagMatch = restaurant.tags.contains { $0.lowercased().contains(category) }
+        let tagMatch = restaurant.tags.contains { normalized($0).contains(categoryNeedle) }
         return categoryMatch || tagMatch
       }
     }

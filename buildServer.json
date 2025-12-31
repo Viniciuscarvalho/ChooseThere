@@ -12,8 +12,8 @@
 	"argv": [
 		"/opt/homebrew/bin/xcode-build-server"
 	],
-	"workspace": "/Users/viniciuscarvalho/Documents/ChooseThere/ChooseThere/ChooseThere.xcodeproj/project.xcworkspace",
-	"build_root": "/Users/viniciuscarvalho/Library/Developer/Xcode/DerivedData/ChooseThere-gmozykefmxawsjeopkctkvcitrdt",
+	"workspace": "/Users/vinicius.marques/Documents/Projects/pessoal/ChooseThere/ChooseThere/ChooseThere.xcodeproj/project.xcworkspace",
+	"build_root": "/Users/vinicius.marques/Library/Developer/Xcode/DerivedData/ChooseThere-buukgpzcxalefrfchoehvynljrfv",
 	"scheme": "ChooseThere",
 	"kind": "xcode"
 }

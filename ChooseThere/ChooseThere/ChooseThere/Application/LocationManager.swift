@@ -30,12 +30,28 @@ enum LocationStatus: Equatable {
   }
 }
 
+// MARK: - LocationManaging Protocol
+
+/// Protocolo para abstração do gerenciador de localização (permite mocks em testes)
+@MainActor
+protocol LocationManaging: AnyObject {
+  var status: LocationStatus { get }
+  var currentLocation: CLLocationCoordinate2D? { get }
+  var isLoading: Bool { get }
+  var lastError: Error? { get }
+  
+  func requestPermission()
+  func getCurrentLocation() async -> CLLocationCoordinate2D?
+  func updateStatus()
+  func openSettings()
+}
+
 // MARK: - LocationManager
 
 /// Gerencia permissões e obtenção de localização via CoreLocation
 @MainActor
 @Observable
-final class LocationManager: NSObject {
+final class LocationManager: NSObject, LocationManaging {
   // MARK: - State
 
   private(set) var status: LocationStatus = .notDetermined

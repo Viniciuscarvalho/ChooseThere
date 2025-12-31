@@ -26,6 +26,14 @@ protocol NearbySearching {
     userCoordinate: CLLocationCoordinate2D,
     cityHint: String?
   ) async throws -> [NearbyPlace]
+  
+  /// Busca lugares próximos sem usar cache
+  func searchWithoutCache(
+    radiusKm: Int,
+    category: String?,
+    userCoordinate: CLLocationCoordinate2D,
+    cityHint: String?
+  ) async throws -> [NearbyPlace]
 }
 
 // MARK: - AppleMapsSearchError

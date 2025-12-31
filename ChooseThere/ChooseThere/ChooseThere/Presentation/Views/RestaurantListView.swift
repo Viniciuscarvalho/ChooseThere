@@ -11,6 +11,7 @@ import SwiftData
 struct RestaurantListView: View {
   @Environment(AppRouter.self) private var router
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.openURL) private var openURL
 
   @State private var viewModel: RestaurantListViewModel?
   @State private var showCategoryFilter = false
@@ -158,13 +159,13 @@ struct RestaurantListView: View {
 
   private func restaurantList(vm: RestaurantListViewModel) -> some View {
     ScrollView {
-      LazyVStack(spacing: 12, pinnedViews: [.sectionHeaders]) {
+      LazyVStack(spacing: 16, pinnedViews: [.sectionHeaders]) {
         let grouped = vm.groupedByCategory()
 
         ForEach(grouped, id: \.category) { group in
           Section {
             ForEach(group.restaurants, id: \.id) { restaurant in
-              restaurantRow(restaurant: restaurant, vm: vm)
+              restaurantCard(restaurant: restaurant, vm: vm)
             }
           } header: {
             sectionHeader(title: formatCategory(group.category))
@@ -172,6 +173,59 @@ struct RestaurantListView: View {
         }
       }
       .padding(.horizontal, 20)
+    }
+  }
+  
+  // MARK: - Restaurant Card
+  
+  private func restaurantCard(restaurant: Restaurant, vm: RestaurantListViewModel) -> some View {
+    let linkOpener = ExternalLinkOpener(openURL: openURL)
+    
+    return RestaurantCard(
+      restaurant: restaurant,
+      distance: nil, // Distância não disponível na lista "Minha base"
+      onTap: {
+        router.pushOverlay(.result(restaurantId: restaurant.id))
+      },
+      onQuickAction: { action in
+        handleQuickAction(action, for: restaurant, linkOpener: linkOpener)
+      }
+    )
+  }
+  
+  // MARK: - Quick Action Handler
+  
+  private func handleQuickAction(
+    _ action: QuickAction,
+    for restaurant: Restaurant,
+    linkOpener: ExternalLinkOpener
+  ) {
+    switch action {
+    case .tripAdvisor:
+      if let url = restaurant.tripAdvisorURL {
+        linkOpener.openTripAdvisor(url: url)
+      }
+    case .iFood:
+      if let url = restaurant.iFoodURL {
+        linkOpener.openIFood(url: url)
+      }
+    case .rideOrRoute:
+      linkOpener.openRideOrRoute(
+        ride99URL: restaurant.ride99URL,
+        restaurantName: restaurant.name,
+        latitude: restaurant.lat,
+        longitude: restaurant.lng
+      )
+    case .searchTripAdvisor:
+      linkOpener.searchTripAdvisor(
+        restaurantName: restaurant.name,
+        city: restaurant.city
+      )
+    case .searchIFood:
+      linkOpener.searchIFood(
+        restaurantName: restaurant.name,
+        city: restaurant.city
+      )
     }
   }
 
@@ -188,76 +242,6 @@ struct RestaurantListView: View {
     .padding(.vertical, 8)
     .padding(.horizontal, 4)
     .background(AppColors.background)
-  }
-
-  // MARK: - Restaurant Row
-
-  private func restaurantRow(restaurant: Restaurant, vm: RestaurantListViewModel) -> some View {
-    Button {
-      router.pushOverlay(.result(restaurantId: restaurant.id))
-    } label: {
-      HStack(spacing: 14) {
-        // Category icon
-        ZStack {
-          Circle()
-            .fill(AppColors.primary.opacity(0.15))
-            .frame(width: 48, height: 48)
-
-          Image(systemName: categoryIcon(for: restaurant.category))
-            .font(.system(size: 20, weight: .medium))
-            .foregroundStyle(AppColors.primary)
-        }
-
-        // Info
-        VStack(alignment: .leading, spacing: 4) {
-          HStack {
-            Text(restaurant.name)
-              .font(.body.weight(.semibold))
-              .foregroundStyle(AppColors.textPrimary)
-              .lineLimit(1)
-            
-            // Rating badge (se tiver avaliações)
-            if restaurant.hasRatings {
-              RatingBadge(restaurant: restaurant, style: .compact)
-            }
-          }
-
-          HStack(spacing: 4) {
-            Text(formatCategory(restaurant.category))
-              .font(.caption)
-              .foregroundStyle(AppColors.textSecondary)
-
-            if !restaurant.address.isEmpty {
-              Text("•")
-                .font(.caption)
-                .foregroundStyle(AppColors.textSecondary)
-
-              Text(restaurant.address)
-                .font(.caption)
-                .foregroundStyle(AppColors.textSecondary)
-                .lineLimit(1)
-            }
-          }
-        }
-
-        Spacer()
-
-        // Favorite button
-        Button {
-          vm.toggleFavorite(for: restaurant)
-        } label: {
-          Image(systemName: restaurant.isFavorite ? "heart.fill" : "heart")
-            .font(.system(size: 20))
-            .foregroundStyle(restaurant.isFavorite ? AppColors.secondary : AppColors.textSecondary.opacity(0.5))
-        }
-        .buttonStyle(.plain)
-      }
-      .padding(16)
-      .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel("\(restaurant.name), \(formatCategory(restaurant.category))\(restaurant.hasRatings ? ", avaliação \(String(format: "%.1f", restaurant.ratingAverage))" : "")")
-    .accessibilityHint("Toque para ver detalhes")
   }
 
   // MARK: - Error View
@@ -291,21 +275,6 @@ struct RestaurantListView: View {
     category
       .replacingOccurrences(of: "-", with: " ")
       .capitalized
-  }
-
-  private func categoryIcon(for category: String) -> String {
-    switch category.lowercased() {
-    case "bar": return "wineglass.fill"
-    case "brunch": return "cup.and.saucer.fill"
-    case "cafe-dessert": return "birthday.cake.fill"
-    case "burger": return "takeoutbag.and.cup.and.straw.fill"
-    case "brasileira": return "leaf.fill"
-    case "japanese": return "fish.fill"
-    case "italian": return "fork.knife"
-    case "arab-mediterranean": return "sun.max.fill"
-    case "contemporary-fine": return "star.fill"
-    default: return "fork.knife"
-    }
   }
 }
 

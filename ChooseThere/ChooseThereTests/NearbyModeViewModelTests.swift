@@ -13,29 +13,33 @@ import XCTest
 // MARK: - Mock LocationManager
 
 @MainActor
-final class MockLocationManager: LocationManager {
-  var mockStatus: LocationStatus = .authorizedWhenInUse
+final class MockLocationManager: LocationManaging {
+  var status: LocationStatus = .authorizedWhenInUse
+  var currentLocation: CLLocationCoordinate2D?
+  var isLoading: Bool = false
+  var lastError: Error?
+  
   var mockLocation: CLLocationCoordinate2D?
-  var mockError: Error?
   var requestPermissionCalled = false
   var openSettingsCalled = false
+  var updateStatusCalled = false
 
-  override var status: LocationStatus {
-    mockStatus
-  }
-
-  override func requestPermission() {
+  func requestPermission() {
     requestPermissionCalled = true
   }
 
-  override func getCurrentLocation() async -> CLLocationCoordinate2D? {
-    if let error = mockError {
+  func getCurrentLocation() async -> CLLocationCoordinate2D? {
+    if lastError != nil {
       return nil
     }
     return mockLocation
   }
 
-  override func openSettings() {
+  func updateStatus() {
+    updateStatusCalled = true
+  }
+
+  func openSettings() {
     openSettingsCalled = true
   }
 }
@@ -92,20 +96,36 @@ final class MockRestaurantRepository: RestaurantRepository {
     return mockRestaurants
   }
 
-  func find(byId id: String) throws -> Restaurant? {
+  func fetch(id: String) throws -> Restaurant? {
     return mockRestaurants.first { $0.id == id }
   }
 
-  func save(_ restaurant: Restaurant) throws {
+  func setFavorite(id: String, isFavorite: Bool) throws {
     // No-op for tests
   }
 
-  func delete(_ restaurant: Restaurant) throws {
+  func updateApplePlaceData(id: String, lat: Double, lng: Double, applePlaceName: String?, applePlaceAddress: String?) throws {
     // No-op for tests
   }
 
-  func toggleFavorite(_ restaurant: Restaurant) throws -> Restaurant {
-    return restaurant
+  func markApplePlaceUnresolved(id: String) throws {
+    // No-op for tests
+  }
+
+  func updateRatingSnapshot(id: String, average: Double, count: Int, lastVisitedAt: Date?) throws {
+    // No-op for tests
+  }
+
+  func fetchUnresolvedLocations() throws -> [Restaurant] {
+    return []
+  }
+
+  func updateExternalLinks(id: String, tripAdvisorURL: URL?, iFoodURL: URL?, ride99URL: URL?, imageURL: URL?) throws {
+    // No-op for tests
+  }
+  
+  func updateExternalLink(id: String, externalLink: URL?) throws {
+    // No-op for tests
   }
 }
 
@@ -159,7 +179,7 @@ final class NearbyModeViewModelTests: XCTestCase {
     mockRandomizer = MockRestaurantRandomizer()
 
     // Configure mocks with default values
-    mockLocationManager.mockStatus = .authorizedWhenInUse
+    mockLocationManager.status = .authorizedWhenInUse
     mockLocationManager.mockLocation = paulistaCoordinate
 
     viewModel = createViewModel()
@@ -230,7 +250,7 @@ final class NearbyModeViewModelTests: XCTestCase {
   // MARK: - Permission Tests
 
   func testSearchWithoutPermissionShowsNoPermissionState() async {
-    mockLocationManager.mockStatus = .notDetermined
+    mockLocationManager.status = .notDetermined
 
     await viewModel.searchNearby()
 
@@ -239,7 +259,7 @@ final class NearbyModeViewModelTests: XCTestCase {
   }
 
   func testSearchWithDeniedPermissionShowsNoPermissionState() async {
-    mockLocationManager.mockStatus = .denied
+    mockLocationManager.status = .denied
 
     await viewModel.searchNearby()
 
@@ -247,18 +267,18 @@ final class NearbyModeViewModelTests: XCTestCase {
   }
 
   func testHasLocationPermissionReturnsCorrectValue() {
-    mockLocationManager.mockStatus = .authorizedWhenInUse
+    mockLocationManager.status = .authorizedWhenInUse
     XCTAssertTrue(viewModel.hasLocationPermission)
 
-    mockLocationManager.mockStatus = .denied
+    mockLocationManager.status = .denied
     XCTAssertFalse(viewModel.hasLocationPermission)
   }
 
   func testCanRequestPermissionReturnsCorrectValue() {
-    mockLocationManager.mockStatus = .notDetermined
+    mockLocationManager.status = .notDetermined
     XCTAssertTrue(viewModel.canRequestPermission)
 
-    mockLocationManager.mockStatus = .denied
+    mockLocationManager.status = .denied
     XCTAssertFalse(viewModel.canRequestPermission)
   }
 

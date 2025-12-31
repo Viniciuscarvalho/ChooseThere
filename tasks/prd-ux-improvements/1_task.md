@@ -70,3 +70,4 @@ Consultar `techspec.md` para:
 
 
 
+

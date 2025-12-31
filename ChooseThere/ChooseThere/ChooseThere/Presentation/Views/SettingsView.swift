@@ -182,23 +182,20 @@ struct SettingsView: View {
   
   private var navigationContent: some View {
     NavigationStack {
-      ZStack {
-        AppColors.background.ignoresSafeArea()
-        settingsList
-      }
-      .navigationTitle("Configurações")
-      .navigationBarTitleDisplayMode(.large)
-      .toolbarBackground(AppColors.background, for: .navigationBar)
-      .toolbarBackground(.visible, for: .navigationBar)
-      .toolbarColorScheme(.light, for: .navigationBar)
-      .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Fechar") {
-            dismiss()
+      settingsList
+        .background(AppColors.background)
+        .navigationTitle("Configurações")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(AppColors.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+          ToolbarItem(placement: .confirmationAction) {
+            Button("Fechar") {
+              dismiss()
+            }
+            .foregroundStyle(AppColors.primary)
           }
-          .foregroundStyle(AppColors.primary)
         }
-      }
     }
   }
 

@@ -41,6 +41,17 @@ struct Restaurant: Identifiable, Equatable, Hashable {
   /// Data da última visita avaliada
   var ratingLastVisitedAt: Date?
   
+  // MARK: - External Links (Manual/Curated)
+  
+  /// URL do restaurante no TripAdvisor (página exata)
+  var tripAdvisorURL: URL?
+  /// URL do restaurante no iFood (loja/cardápio)
+  var iFoodURL: URL?
+  /// URL do 99 ou link de corrida (opcional; fallback para rota no Maps)
+  var ride99URL: URL?
+  /// URL de imagem do restaurante (curada manualmente, maior prioridade)
+  var imageURL: URL?
+  
   // MARK: - Computed Properties
   
   /// Indica se o restaurante tem avaliações
@@ -51,6 +62,11 @@ struct Restaurant: Identifiable, Equatable, Hashable {
   /// Indica se o restaurante é considerado "bem avaliado" (média >= 4 com pelo menos 1 avaliação)
   var isHighlyRated: Bool {
     ratingCount > 0 && ratingAverage >= 4.0
+  }
+  
+  /// Indica se o restaurante tem pelo menos um link externo cadastrado
+  var hasExternalLinks: Bool {
+    tripAdvisorURL != nil || iFoodURL != nil || ride99URL != nil
   }
   
   // MARK: - Initializer with Defaults
@@ -74,7 +90,11 @@ struct Restaurant: Identifiable, Equatable, Hashable {
     applePlaceAddress: String? = nil,
     ratingAverage: Double = 0,
     ratingCount: Int = 0,
-    ratingLastVisitedAt: Date? = nil
+    ratingLastVisitedAt: Date? = nil,
+    tripAdvisorURL: URL? = nil,
+    iFoodURL: URL? = nil,
+    ride99URL: URL? = nil,
+    imageURL: URL? = nil
   ) {
     self.id = id
     self.name = name
@@ -95,6 +115,10 @@ struct Restaurant: Identifiable, Equatable, Hashable {
     self.ratingAverage = ratingAverage
     self.ratingCount = ratingCount
     self.ratingLastVisitedAt = ratingLastVisitedAt
+    self.tripAdvisorURL = tripAdvisorURL
+    self.iFoodURL = iFoodURL
+    self.ride99URL = ride99URL
+    self.imageURL = imageURL
   }
 }
 
@@ -110,11 +134,7 @@ extension Restaurant {
     self.state = model.state
     self.tags = model.tags
     self.notes = model.notes
-    if let linkStr = model.externalLink {
-      self.externalLink = URL(string: linkStr)
-    } else {
-      self.externalLink = nil
-    }
+    self.externalLink = model.externalLink.flatMap { URL(string: $0) }
     self.lat = model.lat
     self.lng = model.lng
     self.isFavorite = model.isFavorite
@@ -125,6 +145,12 @@ extension Restaurant {
     self.ratingAverage = model.ratingAverage
     self.ratingCount = model.ratingCount
     self.ratingLastVisitedAt = model.ratingLastVisitedAt
+    
+    // External Links
+    self.tripAdvisorURL = model.tripAdvisorURL.flatMap { URL(string: $0) }
+    self.iFoodURL = model.iFoodURL.flatMap { URL(string: $0) }
+    self.ride99URL = model.ride99URL.flatMap { URL(string: $0) }
+    self.imageURL = model.imageURL.flatMap { URL(string: $0) }
   }
 }
 

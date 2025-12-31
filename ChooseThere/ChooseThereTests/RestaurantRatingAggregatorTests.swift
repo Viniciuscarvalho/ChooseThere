@@ -37,7 +37,7 @@ final class MockVisitRepository: VisitRepository {
   }
 }
 
-final class MockRestaurantRepository: RestaurantRepository {
+final class MockRatingRepository: RestaurantRepository {
   var restaurants: [Restaurant] = []
   var ratingSnapshots: [String: (average: Double, count: Int, lastVisitedAt: Date?)] = [:]
   var error: Error?
@@ -76,6 +76,16 @@ final class MockRestaurantRepository: RestaurantRepository {
     if let error = error { throw error }
     return restaurants.filter { !$0.applePlaceResolved }
   }
+  
+  func updateExternalLinks(id: String, tripAdvisorURL: URL?, iFoodURL: URL?, ride99URL: URL?, imageURL: URL?) throws {
+    if let error = error { throw error }
+    // No-op for tests
+  }
+  
+  func updateExternalLink(id: String, externalLink: URL?) throws {
+    if let error = error { throw error }
+    // No-op for tests
+  }
 }
 
 // MARK: - Test Fixtures
@@ -110,13 +120,13 @@ extension Visit {
 final class RestaurantRatingAggregatorTests: XCTestCase {
   
   var visitRepository: MockVisitRepository!
-  var restaurantRepository: MockRestaurantRepository!
+  var restaurantRepository: MockRatingRepository!
   var aggregator: RestaurantRatingAggregator!
   
   override func setUp() {
     super.setUp()
     visitRepository = MockVisitRepository()
-    restaurantRepository = MockRestaurantRepository()
+    restaurantRepository = MockRatingRepository()
     aggregator = RestaurantRatingAggregator(
       visitRepository: visitRepository,
       restaurantRepository: restaurantRepository

@@ -121,10 +121,10 @@ final class NearbyModeViewModel {
 
   // MARK: - Dependencies
 
-  private let locationManager: LocationManager
+  private let locationManager: any LocationManaging
   private let restaurantRepository: any RestaurantRepository
   private let filterService: NearbyLocalFilterService
-  private let appleMapsService: AppleMapsNearbySearchService
+  private let appleMapsService: any NearbySearching
   private let randomizer: any RestaurantRandomizerProtocol
 
   // MARK: - Session State
@@ -140,10 +140,10 @@ final class NearbyModeViewModel {
   // MARK: - Init
 
   init(
-    locationManager: LocationManager,
+    locationManager: any LocationManaging,
     restaurantRepository: any RestaurantRepository,
     filterService: NearbyLocalFilterService = NearbyLocalFilterService(),
-    appleMapsService: AppleMapsNearbySearchService = AppleMapsNearbySearchService(),
+    appleMapsService: any NearbySearching = AppleMapsNearbySearchService(),
     randomizer: any RestaurantRandomizerProtocol = RestaurantRandomizer()
   ) {
     self.locationManager = locationManager
@@ -442,6 +442,20 @@ final class NearbyModeViewModel {
   func formattedDistance(to place: NearbyPlace) -> String? {
     guard let userCoordinate = locationManager.currentLocation else { return nil }
     return place.formattedDistance(from: userCoordinate)
+  }
+  
+  /// Calcula a distância em km até um restaurante
+  func distanceKm(to restaurant: Restaurant) -> Double? {
+    guard let userCoordinate = locationManager.currentLocation else { return nil }
+    let meters = filterService.distance(to: restaurant, from: userCoordinate)
+    return meters / 1000.0
+  }
+  
+  /// Calcula a distância em km até um lugar (Apple Maps)
+  func distanceKm(to place: NearbyPlace) -> Double? {
+    guard let userCoordinate = locationManager.currentLocation else { return nil }
+    let meters = place.distance(from: userCoordinate)
+    return meters / 1000.0
   }
 
   /// Retorna o lugar selecionado atualmente (Apple Maps)

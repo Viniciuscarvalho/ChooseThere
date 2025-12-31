@@ -11,6 +11,7 @@ import SwiftData
 struct PreferencesView: View {
   @Environment(AppRouter.self) private var router
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.openURL) private var openURL
 
   @State private var viewModel: PreferencesViewModel?
   @State private var nearbyViewModel: NearbyModeViewModel?
@@ -428,7 +429,9 @@ struct PreferencesView: View {
   }
 
   private func nearbyResultsView(restaurants: [Restaurant], nearbyVM: NearbyModeViewModel) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    let linkOpener = ExternalLinkOpener(openURL: openURL)
+    
+    return VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("\(restaurants.count) restaurantes encontrados")
           .font(.headline)
@@ -449,9 +452,10 @@ struct PreferencesView: View {
       }
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
           ForEach(restaurants.prefix(10)) { restaurant in
-            nearbyRestaurantCard(restaurant: restaurant, nearbyVM: nearbyVM)
+            nearbyRestaurantCardNew(restaurant: restaurant, nearbyVM: nearbyVM, linkOpener: linkOpener)
+              .frame(width: 280)
           }
         }
       }
@@ -460,40 +464,65 @@ struct PreferencesView: View {
     .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
   }
 
-  private func nearbyRestaurantCard(restaurant: Restaurant, nearbyVM: NearbyModeViewModel) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text(restaurant.name)
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(AppColors.textPrimary)
-        .lineLimit(2)
-
-      Text(restaurant.category)
-        .font(.caption)
-        .foregroundStyle(AppColors.textSecondary)
-
-      if let distance = nearbyVM.formattedDistance(to: restaurant) {
-        HStack(spacing: 4) {
-          Image(systemName: "location.fill")
-            .font(.system(size: 10))
-          Text(distance)
-        }
-        .font(.caption)
-        .foregroundStyle(AppColors.accent)
+  private func nearbyRestaurantCardNew(
+    restaurant: Restaurant,
+    nearbyVM: NearbyModeViewModel,
+    linkOpener: ExternalLinkOpener
+  ) -> some View {
+    let distanceKm = nearbyVM.distanceKm(to: restaurant)
+    
+    return RestaurantCard(
+      restaurant: restaurant,
+      distance: distanceKm,
+      onTap: {
+        router.pushOverlay(.result(restaurantId: restaurant.id))
+      },
+      onQuickAction: { action in
+        handleNearbyQuickAction(action, for: restaurant, linkOpener: linkOpener)
       }
-    }
-    .frame(width: 140, alignment: .leading)
-    .padding(12)
-    .background(AppColors.background, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-    .overlay(
-      RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .stroke(AppColors.divider, lineWidth: 1)
     )
+  }
+  
+  private func handleNearbyQuickAction(
+    _ action: QuickAction,
+    for restaurant: Restaurant,
+    linkOpener: ExternalLinkOpener
+  ) {
+    switch action {
+    case .tripAdvisor:
+      if let url = restaurant.tripAdvisorURL {
+        linkOpener.openTripAdvisor(url: url)
+      }
+    case .iFood:
+      if let url = restaurant.iFoodURL {
+        linkOpener.openIFood(url: url)
+      }
+    case .rideOrRoute:
+      linkOpener.openRideOrRoute(
+        ride99URL: restaurant.ride99URL,
+        restaurantName: restaurant.name,
+        latitude: restaurant.lat,
+        longitude: restaurant.lng
+      )
+    case .searchTripAdvisor:
+      linkOpener.searchTripAdvisor(
+        restaurantName: restaurant.name,
+        city: restaurant.city
+      )
+    case .searchIFood:
+      linkOpener.searchIFood(
+        restaurantName: restaurant.name,
+        city: restaurant.city
+      )
+    }
   }
 
   // MARK: - Apple Maps Results View
 
   private func appleMapsResultsView(places: [NearbyPlace], nearbyVM: NearbyModeViewModel) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    let linkOpener = ExternalLinkOpener(openURL: openURL)
+    
+    return VStack(alignment: .leading, spacing: 12) {
       HStack {
         HStack(spacing: 6) {
           Image(systemName: "map.fill")
@@ -533,9 +562,10 @@ struct PreferencesView: View {
       .background(AppColors.divider.opacity(0.5), in: Capsule())
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
           ForEach(places.prefix(15)) { place in
-            appleMapsPlaceCard(place: place, nearbyVM: nearbyVM)
+            appleMapsPlaceCardNew(place: place, nearbyVM: nearbyVM, linkOpener: linkOpener)
+              .frame(width: 280)
           }
         }
       }
@@ -544,42 +574,26 @@ struct PreferencesView: View {
     .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
   }
 
-  private func appleMapsPlaceCard(place: NearbyPlace, nearbyVM: NearbyModeViewModel) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text(place.name)
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(AppColors.textPrimary)
-        .lineLimit(2)
-
-      if let categoryHint = place.categoryHint {
-        Text(categoryHint)
-          .font(.caption)
-          .foregroundStyle(AppColors.textSecondary)
+  private func appleMapsPlaceCardNew(
+    place: NearbyPlace,
+    nearbyVM: NearbyModeViewModel,
+    linkOpener: ExternalLinkOpener
+  ) -> some View {
+    let distanceKm = nearbyVM.distanceKm(to: place)
+    
+    return NearbyPlaceCard(
+      place: place,
+      distance: distanceKm,
+      onTap: {
+        router.pushOverlay(.nearbyPlaceResult(place))
+      },
+      onRouteAction: {
+        linkOpener.openRouteInMaps(
+          name: place.name,
+          latitude: place.latitude,
+          longitude: place.longitude
+        )
       }
-
-      if let distance = nearbyVM.formattedDistance(to: place) {
-        HStack(spacing: 4) {
-          Image(systemName: "location.fill")
-            .font(.system(size: 10))
-          Text(distance)
-        }
-        .font(.caption)
-        .foregroundStyle(AppColors.accent)
-      }
-
-      if let address = place.address {
-        Text(address)
-          .font(.caption2)
-          .foregroundStyle(AppColors.textSecondary.opacity(0.8))
-          .lineLimit(2)
-      }
-    }
-    .frame(width: 160, alignment: .leading)
-    .padding(12)
-    .background(AppColors.background, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-    .overlay(
-      RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .stroke(AppColors.divider, lineWidth: 1)
     )
   }
 
@@ -856,15 +870,35 @@ struct PreferencesView: View {
           
           Text(enrichmentManager.statusMessage)
             .font(.caption)
-            .foregroundStyle(AppColors.textSecondary)
+            .foregroundStyle(enrichmentManager.isCancelling ? AppColors.warning : AppColors.textSecondary)
+            .animation(.easeInOut, value: enrichmentManager.statusMessage)
         }
         
         Spacer()
         
         if enrichmentManager.isRunning {
-          ProgressView()
-            .tint(AppColors.primary)
+          // Botão de cancelar durante execução
+          Button {
+            enrichmentManager.cancel()
+          } label: {
+            if enrichmentManager.isCancelling {
+              ProgressView()
+                .tint(AppColors.error)
+                .frame(width: 36, height: 36)
+            } else {
+              Image(systemName: "stop.fill")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(AppColors.error)
+                .frame(width: 36, height: 36)
+                .background(AppColors.error.opacity(0.1), in: Circle())
+            }
+          }
+          .buttonStyle(.plain)
+          .disabled(enrichmentManager.isCancelling)
+          .accessibilityLabel("Cancelar atualização")
+          .accessibilityHint("Toque para interromper a atualização de localizações")
         } else {
+          // Botão de iniciar
           Button {
             Task {
               await enrichmentManager.startEnrichment()
@@ -877,13 +911,15 @@ struct PreferencesView: View {
               .background(AppColors.primary.opacity(0.1), in: Circle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel("Atualizar localizações")
+          .accessibilityHint("Toque para iniciar a atualização de localizações via Apple Maps")
         }
       }
       
       // Barra de progresso
       if enrichmentManager.isRunning {
         ProgressView(value: enrichmentManager.progress)
-          .tint(AppColors.success)
+          .tint(enrichmentManager.isCancelling ? AppColors.warning : AppColors.success)
           .animation(.easeInOut, value: enrichmentManager.progress)
       }
       
@@ -901,6 +937,12 @@ struct PreferencesView: View {
           Label("\(result.skipped)", systemImage: "arrow.right.circle.fill")
             .font(.caption)
             .foregroundStyle(AppColors.textSecondary)
+          
+          if result.cancelled {
+            Label("Cancelado", systemImage: "exclamationmark.circle.fill")
+              .font(.caption)
+              .foregroundStyle(AppColors.warning)
+          }
         }
       }
     }

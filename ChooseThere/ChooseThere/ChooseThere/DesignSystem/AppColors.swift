@@ -17,7 +17,9 @@ enum AppColors {
   // Semantic
   static let success = accent
   static let error = secondary
+  static let warning = Color(hex: 0xF59E0B) // Amber - para estados de alerta/cancelamento
 }
+
 
 
 

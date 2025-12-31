@@ -66,3 +66,4 @@ Criar a camada de acesso a dados e a regra central do app: filtrar e sortear res
 
 
 
+
