@@ -110,3 +110,4 @@ Acessibilidade:
 - Comportamento exato do fallback do 99: abrir Apple Maps sempre, ou oferecer sheet Apple/Google (decisão de UX).
 
 
+

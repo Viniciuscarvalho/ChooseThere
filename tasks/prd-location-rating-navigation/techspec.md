@@ -144,3 +144,4 @@ Não aplicável (apenas MapKit local e persistência local).
 
 
 
+

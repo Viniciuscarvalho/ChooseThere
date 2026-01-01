@@ -187,3 +187,4 @@ Não aplicável (sem backend). O único “fetch” é o HTML do site do restaur
   - `ChooseThere/ChooseThere/ChooseThere/ChooseThere/Presentation/Views/NearbyPlaceDetailView.swift`
 
 
+
