@@ -99,10 +99,31 @@ final class NearbyModeViewModel {
     }
   }
 
-  /// Categoria/tipo selecionado
+  /// Categoria/tipo selecionado (legacy, usado para query no Apple Maps)
   var selectedCategory: String? {
     didSet {
       AppSettingsStorage.nearbyLastCategory = selectedCategory
+    }
+  }
+  
+  /// Tags desejadas para o sorteio (unificado com modo "Minha Lista")
+  var selectedTags: Set<String> {
+    didSet {
+      AppSettingsStorage.nearbySelectedTags = selectedTags
+    }
+  }
+  
+  /// Tags a evitar para o sorteio (unificado com modo "Minha Lista")
+  var avoidTags: Set<String> {
+    didSet {
+      AppSettingsStorage.nearbyAvoidTags = avoidTags
+    }
+  }
+  
+  /// Prioridade de rating para o sorteio
+  var ratingPriority: RatingPriority {
+    didSet {
+      AppSettingsStorage.nearbyRatingPriority = ratingPriority
     }
   }
 
@@ -117,6 +138,20 @@ final class NearbyModeViewModel {
         nearbyPlaces = []
       }
     }
+  }
+  
+  /// Indica se a base local (Minha base) está disponível para o modo nearby
+  /// Apenas São Paulo possui dados no JSON
+  var isLocalBaseAvailable: Bool {
+    AppSettingsStorage.isLocalBaseAvailableForNearby
+  }
+  
+  /// Fonte efetiva: força Apple Maps quando base local não está disponível
+  var effectiveSource: NearbySource {
+    if !isLocalBaseAvailable {
+      return .appleMaps
+    }
+    return source
   }
 
   // MARK: - Dependencies
@@ -154,6 +189,9 @@ final class NearbyModeViewModel {
     self.radiusKm = AppSettingsStorage.nearbyRadiusKm
     self.selectedCategory = AppSettingsStorage.nearbyLastCategory
     self.source = AppSettingsStorage.nearbySource
+    self.selectedTags = AppSettingsStorage.nearbySelectedTags
+    self.avoidTags = AppSettingsStorage.nearbyAvoidTags
+    self.ratingPriority = AppSettingsStorage.nearbyRatingPriority
   }
 
   // MARK: - Location Status
@@ -221,8 +259,8 @@ final class NearbyModeViewModel {
 
     lastUserCoordinate = userCoordinate
 
-    // Executar busca baseado na fonte selecionada
-    switch source {
+    // Executar busca baseado na fonte efetiva (força Apple Maps fora de SP)
+    switch effectiveSource {
     case .localBase:
       await searchLocalBase(userCoordinate: userCoordinate)
     case .appleMaps:
@@ -292,21 +330,69 @@ final class NearbyModeViewModel {
       nearbyRestaurants = []
 
       if places.isEmpty {
-        searchState = .noResults
+        // Tentar fallback para base local se estivermos em SP
+        if isLocalBaseAvailable {
+          await fallbackToLocalBase(userCoordinate: userCoordinate)
+        } else {
+          searchState = .noResults
+        }
       } else {
         searchState = .appleMapsResults(places)
       }
     } catch let error as AppleMapsSearchError {
       switch error {
       case .noResults:
-        searchState = .noResults
+        // Tentar fallback para base local se estivermos em SP
+        if isLocalBaseAvailable {
+          await fallbackToLocalBase(userCoordinate: userCoordinate)
+        } else {
+          searchState = .noResults
+        }
       case .networkError:
-        searchState = .error("Sem conexão. Tente \"Minha base\" ou verifique sua internet.")
+        // Tentar fallback para base local se estivermos em SP
+        if isLocalBaseAvailable {
+          await fallbackToLocalBase(userCoordinate: userCoordinate)
+        } else {
+          searchState = .error("Sem conexão. Verifique sua internet.")
+        }
       default:
         searchState = .error(error.localizedDescription)
       }
     } catch {
       searchState = .error("Erro ao buscar: \(error.localizedDescription)")
+    }
+  }
+  
+  /// Fallback para base local quando Apple Maps falha ou não retorna resultados (apenas em SP)
+  private func fallbackToLocalBase(userCoordinate: CLLocationCoordinate2D) async {
+    // Usar a mesma lógica do searchLocalBase
+    do {
+      let allRestaurants = try restaurantRepository.fetchAll()
+
+      // Filtrar por cidade São Paulo
+      let cityFiltered = allRestaurants.filter { restaurant in
+        restaurant.city.lowercased() == "são paulo" &&
+        restaurant.state.lowercased() == "sp"
+      }
+
+      // Aplicar filtro de distância e categoria
+      let filtered = filterService.filter(
+        restaurants: cityFiltered,
+        userCoordinate: userCoordinate,
+        radiusKm: radiusKm,
+        category: selectedCategory
+      )
+
+      nearbyRestaurants = filtered
+      nearbyPlaces = []
+
+      if filtered.isEmpty {
+        searchState = .noResults
+      } else {
+        searchState = .localResults(filtered)
+      }
+    } catch {
+      searchState = .noResults
     }
   }
 
@@ -461,6 +547,48 @@ final class NearbyModeViewModel {
   /// Retorna o lugar selecionado atualmente (Apple Maps)
   func getSelectedPlace() -> NearbyPlace? {
     selectedPlace
+  }
+  
+  // MARK: - Preference Context Builder
+  
+  /// Monta um PreferenceContext a partir dos filtros ativos no modo "Perto de mim".
+  /// - Returns: PreferenceContext preenchido com tags, raio e localização
+  func buildPreferenceContext() -> PreferenceContext {
+    var desiredTags = selectedTags
+    
+    // Se há uma categoria selecionada (legacy), usá-la também como tag desejada
+    if let category = selectedCategory, !category.isEmpty {
+      desiredTags.insert(category.lowercased())
+    }
+    
+    return PreferenceContext(
+      desiredTags: desiredTags,
+      avoidTags: avoidTags,
+      radiusKm: radiusKm,
+      priceTier: nil,
+      userLocation: lastUserCoordinate ?? locationManager.currentLocation,
+      ratingPriority: ratingPriority
+    )
+  }
+  
+  // MARK: - Tag Manipulation
+  
+  /// Alterna uma tag na lista de tags desejadas
+  func toggleTag(_ tag: String) {
+    if selectedTags.contains(tag) {
+      selectedTags.remove(tag)
+    } else {
+      selectedTags.insert(tag)
+    }
+  }
+  
+  /// Alterna uma tag na lista de tags a evitar
+  func toggleAvoidTag(_ tag: String) {
+    if avoidTags.contains(tag) {
+      avoidTags.remove(tag)
+    } else {
+      avoidTags.insert(tag)
+    }
   }
 }
 

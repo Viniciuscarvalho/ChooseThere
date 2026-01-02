@@ -316,6 +316,15 @@ private class MockRandomizer: RestaurantRandomizerProtocol {
     }
     return pickResult
   }
+  
+  func pickWithRatingFallback(
+    from restaurants: [Restaurant],
+    context: PreferenceContext,
+    excludeRestaurantIDs: Set<String>
+  ) -> Restaurant? {
+    // Usa a mesma lógica do pick para simplificar o mock
+    return pick(from: restaurants, context: context, excludeRestaurantIDs: excludeRestaurantIDs)
+  }
 }
 
 private class MockRecentHistory: RecentHistoryProviding {

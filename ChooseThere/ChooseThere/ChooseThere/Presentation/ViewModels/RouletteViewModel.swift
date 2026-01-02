@@ -34,6 +34,9 @@ final class RouletteViewModel {
   private let smartRoulette: SmartRouletteProtocol
   private var drawnIds: Set<String> = []
   private var allRestaurants: [Restaurant] = []
+  
+  /// Contexto de preferências passado externamente (tags, raio, rating priority, userLocation)
+  private(set) var preferenceContext: PreferenceContext = PreferenceContext()
 
   init(
     restaurantRepository: any RestaurantRepository,
@@ -57,10 +60,24 @@ final class RouletteViewModel {
   }
 
   // MARK: - Actions
+  
+  /// Configura o contexto de preferências para o sorteio.
+  /// Deve ser chamado antes de loadAndSpin quando houver filtros ativos.
+  func setPreferenceContext(_ context: PreferenceContext) {
+    preferenceContext = context
+  }
 
   func loadAndSpin(pendingId: String?) {
     do {
       allRestaurants = try restaurantRepository.fetchAll()
+      
+      // Filtrar por cidade selecionada se aplicável
+      if let parsed = AppSettingsStorage.parseSelectedCity() {
+        allRestaurants = allRestaurants.filter { restaurant in
+          restaurant.city.lowercased() == parsed.city.lowercased() &&
+          restaurant.state.lowercased() == parsed.state.lowercased()
+        }
+      }
     } catch {
       allRestaurants = []
     }
@@ -79,15 +96,9 @@ final class RouletteViewModel {
       phase = .noResults
       return
     }
-    // pick a random one
-    let context = PreferenceContext(
-      desiredTags: [],
-      avoidTags: [],
-      radiusKm: nil,
-      priceTier: nil,
-      userLocation: nil
-    )
-    if let picked = smartRoulette.pick(from: allRestaurants, context: context, sessionExcludes: drawnIds) {
+    
+    // Usa o contexto de preferências configurado externamente
+    if let picked = smartRoulette.pick(from: allRestaurants, context: preferenceContext, sessionExcludes: drawnIds) {
       drawnIds.insert(picked.id)
       startSpinAnimation(finalId: picked.id)
     } else {
