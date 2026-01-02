@@ -23,6 +23,7 @@ struct PreferencesView: View {
   @State private var searchMode: SearchMode = AppSettingsStorage.searchMode
 
   private let radiusOptions: [Int?] = [nil, 1, 3, 5, 10]
+  private let priceTierOptions: [PriceTier?] = [nil] + PriceTier.allCases
 
   var body: some View {
     ZStack {
@@ -71,74 +72,14 @@ struct PreferencesView: View {
     }
   }
 
-  // MARK: - Header & Mode Segment
+  // MARK: - Header & Mode Segment (extracted to subviews)
 
   private var headerSection: some View {
-    HStack(alignment: .top) {
-      VStack(alignment: .leading, spacing: 6) {
-        Text("Hoje estamos a fim de…")
-          .font(.title2.weight(.bold))
-          .foregroundStyle(AppColors.textPrimary)
-
-        Text("Selecione tags e ajuste filtros para sortear.")
-          .font(.subheadline)
-          .foregroundStyle(AppColors.textSecondary)
-      }
-
-      Spacer()
-
-      // Botão de Configurações
-      Button {
-        showingSettings = true
-      } label: {
-        Image(systemName: "gearshape.fill")
-          .font(.system(size: 20, weight: .medium))
-          .foregroundStyle(AppColors.textSecondary)
-          .frame(width: 40, height: 40)
-          .background(AppColors.surface, in: Circle())
-          .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
-      }
-      .buttonStyle(.plain)
-      .accessibilityLabel("Configurações")
-    }
+    PreferencesHeaderView(onSettingsTapped: { showingSettings = true })
   }
 
   private var searchModeSegment: some View {
-    HStack(spacing: 0) {
-      ForEach(SearchMode.allCases) { mode in
-        Button {
-          withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            searchMode = mode
-            AppSettingsStorage.searchMode = mode
-          }
-        } label: {
-          HStack(spacing: 6) {
-            Image(systemName: mode.icon)
-              .font(.system(size: 14, weight: .medium))
-            Text(mode.displayName)
-              .font(.subheadline.weight(.semibold))
-          }
-          .foregroundStyle(searchMode == mode ? AppColors.textPrimary : AppColors.textSecondary)
-          .frame(maxWidth: .infinity)
-          .frame(minHeight: 44) // Touch target mínimo HIG
-          .background(
-            searchMode == mode
-              ? AppColors.primary
-              : Color.clear,
-            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
-          )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(mode.displayName)
-        .accessibilityHint(searchMode == mode ? "Modo selecionado" : "Toque duas vezes para selecionar")
-        .accessibilityAddTraits(searchMode == mode ? .isSelected : [])
-      }
-    }
-    .padding(4)
-    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel("Modo de busca")
+    SearchModeSegmentView(selectedMode: $searchMode)
   }
 
   // MARK: - My List Content
@@ -178,99 +119,34 @@ struct PreferencesView: View {
   }
 
   private var cityInfoCard: some View {
-    HStack(spacing: 12) {
-      Image(systemName: "mappin.circle.fill")
-        .font(.system(size: 28))
-        .foregroundStyle(AppColors.accent)
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text("Buscando em")
-          .font(.caption)
-          .foregroundStyle(AppColors.textSecondary)
-
-        Text(currentCityDisplayName)
-          .font(.headline)
-          .foregroundStyle(AppColors.textPrimary)
-      }
-
-      Spacer()
-
-      Button {
-        showingSettings = true
-      } label: {
-        Text("Alterar")
-          .font(.subheadline.weight(.medium))
-          .foregroundStyle(AppColors.primary)
-      }
-      .buttonStyle(.plain)
-    }
-    .padding(16)
-    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
+    CityInfoCard(
+      cityDisplayName: currentCityDisplayName,
+      onChangeTapped: { showingSettings = true }
+    )
   }
 
   private func nearbyFiltersSection(nearbyVM: NearbyModeViewModel) -> some View {
     VStack(spacing: 16) {
-      // Card: Fonte de dados
-      VStack(alignment: .leading, spacing: 12) {
-        Text("Fonte de dados")
-          .font(.headline)
-          .foregroundStyle(AppColors.textPrimary)
-          .accessibilityAddTraits(.isHeader)
+      // Card: Fonte de dados (exibir apenas se a base local estiver disponível - SP)
+      if nearbyVM.isLocalBaseAvailable {
+        VStack(alignment: .leading, spacing: 12) {
+          Text("Fonte de dados")
+            .font(.headline)
+            .foregroundStyle(AppColors.textPrimary)
+            .accessibilityAddTraits(.isHeader)
 
-        HStack(spacing: 8) {
-          ForEach(NearbySource.allCases) { source in
-            let isSelected = nearbyVM.source == source
-            Button {
-              nearbyVM.source = source
-            } label: {
-              HStack(spacing: 6) {
-                Image(systemName: source == .localBase ? "externaldrive.fill" : "map.fill")
-                  .font(.system(size: 14))
-                Text(source.displayName)
-                  .font(.subheadline.weight(.medium))
-              }
-              .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
-              .padding(.horizontal, 14)
-              .frame(minHeight: 44) // Touch target mínimo HIG
-              .background(
-                isSelected ? AppColors.primary : AppColors.surface,
-                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
-              )
-              .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                  .stroke(isSelected ? AppColors.primary : AppColors.divider, lineWidth: 1)
-              )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(source.displayName)
-            .accessibilityHint(sourceAccessibilityHint(for: source))
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
-          }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Selecionar fonte de dados")
-      }
-      .padding(16)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-      .shadow(color: AppColors.divider.opacity(0.3), radius: 2, y: 1)
-
-      // Card: Raio de busca
-      VStack(alignment: .leading, spacing: 12) {
-        Text("Raio de busca")
-          .font(.headline)
-          .foregroundStyle(AppColors.textPrimary)
-          .accessibilityAddTraits(.isHeader)
-
-        HStack(spacing: 8) {
-          ForEach([1, 3, 5, 10], id: \.self) { km in
-            let isSelected = nearbyVM.radiusKm == km
-            Button {
-              nearbyVM.radiusKm = km
-            } label: {
-              Text("\(km)km")
-                .font(.subheadline.weight(.medium))
+          HStack(spacing: 8) {
+            ForEach(NearbySource.allCases) { source in
+              let isSelected = nearbyVM.source == source
+              Button {
+                nearbyVM.source = source
+              } label: {
+                HStack(spacing: 6) {
+                  Image(systemName: source == .localBase ? "externaldrive.fill" : "map.fill")
+                    .font(.system(size: 14))
+                  Text(source.displayName)
+                    .font(.subheadline.weight(.medium))
+                }
                 .foregroundStyle(isSelected ? AppColors.textPrimary : AppColors.textSecondary)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 44) // Touch target mínimo HIG
@@ -282,22 +158,28 @@ struct PreferencesView: View {
                   RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .stroke(isSelected ? AppColors.primary : AppColors.divider, lineWidth: 1)
                 )
+              }
+              .buttonStyle(.plain)
+              .accessibilityLabel(source.displayName)
+              .accessibilityHint(sourceAccessibilityHint(for: source))
+              .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("\(km) quilômetros")
-            .accessibilityHint(isSelected ? "Raio selecionado" : "Toque duas vezes para selecionar este raio")
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
           }
+          .accessibilityElement(children: .contain)
+          .accessibilityLabel("Selecionar fonte de dados")
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Selecionar raio de busca")
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .shadow(color: AppColors.divider.opacity(0.3), radius: 2, y: 1)
       }
-      .padding(16)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-      .shadow(color: AppColors.divider.opacity(0.3), radius: 2, y: 1)
+
+      // Card: Raio de busca
+      RadiusSelectorView(selectedRadius: Binding(
+        get: { nearbyVM.radiusKm },
+        set: { nearbyVM.radiusKm = $0 }
+      ))
     }
-    .padding(.horizontal, 20)
   }
 
   private func sourceAccessibilityHint(for source: NearbySource) -> String {
@@ -603,8 +485,8 @@ struct PreferencesView: View {
       nearbyVM.resetSession()
       Task {
         await nearbyVM.searchNearby()
-        // Se encontrou resultados, tentar sortear baseado na fonte
-        if nearbyVM.source == .localBase {
+        // Sortear baseado na fonte efetiva (considera SP-only)
+        if nearbyVM.effectiveSource == .localBase {
           if !nearbyVM.nearbyRestaurants.isEmpty {
             if let restaurantId = nearbyVM.draw() {
               UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
@@ -627,9 +509,9 @@ struct PreferencesView: View {
           ProgressView()
             .tint(AppColors.textPrimary)
         } else {
-          Image(systemName: nearbyViewModel?.source == .appleMaps ? "map.fill" : "location.fill")
+          Image(systemName: "location.fill")
         }
-        Text(nearbyActionButtonTitle)
+        Text("Sortear perto de mim")
       }
       .font(.headline)
       .foregroundStyle(AppColors.textPrimary)
@@ -641,33 +523,11 @@ struct PreferencesView: View {
     .disabled(nearbyViewModel?.searchState.isLoading == true)
     .padding(.horizontal, 32)
     .padding(.vertical, 12)
-    .accessibilityLabel(nearbyActionButtonTitle)
-    .accessibilityHint(nearbyActionAccessibilityHint)
+    .accessibilityLabel("Sortear perto de mim")
+    .accessibilityHint("Sorteia um restaurante próximo à sua localização")
     .accessibilityAddTraits(.isButton)
   }
 
-  private var nearbyActionAccessibilityHint: String {
-    guard let nearbyVM = nearbyViewModel else {
-      return "Busca restaurantes próximos à sua localização"
-    }
-    if nearbyVM.searchState.isLoading {
-      return "Busca em andamento, aguarde"
-    }
-    if nearbyVM.source == .appleMaps {
-      return "Toque duas vezes para descobrir novos lugares no Apple Maps"
-    }
-    return "Toque duas vezes para buscar restaurantes próximos"
-  }
-
-  private var nearbyActionButtonTitle: String {
-    guard let nearbyVM = nearbyViewModel else {
-      return "Buscar perto de mim"
-    }
-    if nearbyVM.source == .appleMaps {
-      return "Descobrir no Apple Maps"
-    }
-    return "Buscar perto de mim"
-  }
 
   private var currentCityDisplayName: String {
     guard let key = AppSettingsStorage.selectedCityKey else {
@@ -739,7 +599,7 @@ struct PreferencesView: View {
         .foregroundStyle(AppColors.textPrimary)
 
       HStack(spacing: 8) {
-        ForEach([nil] + PriceTier.allCases.map { Optional($0) }, id: \.self) { tier in
+        ForEach(priceTierOptions, id: \.self) { tier in
           let label = tier?.symbol ?? "Todos"
           let isSelected = vm.selectedPriceTier == tier
           Button {

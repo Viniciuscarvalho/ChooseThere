@@ -65,6 +65,9 @@ enum AppSettingsStorage {
   private static let nearbySourceKey = "nearbySource"
   private static let nearbyRadiusKmKey = "nearbyRadiusKm"
   private static let nearbyLastCategoryKey = "nearbyLastCategory"
+  private static let nearbySelectedTagsKey = "nearbySelectedTags"
+  private static let nearbyAvoidTagsKey = "nearbyAvoidTags"
+  private static let nearbyRatingPriorityKey = "nearbyRatingPriority"
   private static let searchModeKey = "searchMode"
   private static let learningEnabledKey = "learningEnabled"
   private static let avoidRepeatsLimitKey = "avoidRepeatsLimit"
@@ -108,6 +111,19 @@ enum AppSettingsStorage {
     guard parts.count == 2 else { return nil }
     return (String(parts[0]), String(parts[1]))
   }
+  
+  /// Retorna true se a cidade selecionada é São Paulo (SP)
+  /// Esta é a única cidade onde a base local (JSON) está disponível no modo "Perto de mim"
+  static var isSaoPauloSelected: Bool {
+    guard let parsed = parseSelectedCity() else { return false }
+    return parsed.city.lowercased() == "são paulo" && parsed.state.lowercased() == "sp"
+  }
+  
+  /// Retorna true se a base local (Minha base) deve estar disponível no modo "Perto de mim"
+  /// Atualmente, apenas São Paulo possui dados no JSON
+  static var isLocalBaseAvailableForNearby: Bool {
+    isSaoPauloSelected
+  }
 
   // MARK: - Nearby Source
 
@@ -150,6 +166,45 @@ enum AppSettingsStorage {
   static var nearbyLastCategory: String? {
     get { UserDefaults.standard.string(forKey: nearbyLastCategoryKey) }
     set { UserDefaults.standard.set(newValue, forKey: nearbyLastCategoryKey) }
+  }
+  
+  // MARK: - Nearby Tags (modo Perto de mim)
+  
+  /// Tags desejadas para o modo "Perto de mim"
+  static var nearbySelectedTags: Set<String> {
+    get {
+      guard let array = UserDefaults.standard.stringArray(forKey: nearbySelectedTagsKey) else {
+        return []
+      }
+      return Set(array)
+    }
+    set {
+      UserDefaults.standard.set(Array(newValue), forKey: nearbySelectedTagsKey)
+    }
+  }
+  
+  /// Tags a evitar para o modo "Perto de mim"
+  static var nearbyAvoidTags: Set<String> {
+    get {
+      guard let array = UserDefaults.standard.stringArray(forKey: nearbyAvoidTagsKey) else {
+        return []
+      }
+      return Set(array)
+    }
+    set {
+      UserDefaults.standard.set(Array(newValue), forKey: nearbyAvoidTagsKey)
+    }
+  }
+  
+  /// Prioridade de rating para o modo "Perto de mim"
+  static var nearbyRatingPriority: RatingPriority {
+    get {
+      let rawValue = UserDefaults.standard.integer(forKey: nearbyRatingPriorityKey)
+      return RatingPriority(rawValue: rawValue) ?? .none
+    }
+    set {
+      UserDefaults.standard.set(newValue.rawValue, forKey: nearbyRatingPriorityKey)
+    }
   }
 
   // MARK: - Search Mode

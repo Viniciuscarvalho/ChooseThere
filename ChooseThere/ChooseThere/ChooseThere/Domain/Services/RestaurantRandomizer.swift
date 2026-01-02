@@ -15,6 +15,14 @@ protocol RestaurantRandomizerProtocol {
     context: PreferenceContext,
     excludeRestaurantIDs: Set<String>
   ) -> Restaurant?
+  
+  /// Sorteia com fallback de rating.only → .prefer quando não há candidatos com rating interno.
+  /// Útil para Apple Maps onde candidatos não possuem ratingCount.
+  func pickWithRatingFallback(
+    from restaurants: [Restaurant],
+    context: PreferenceContext,
+    excludeRestaurantIDs: Set<String>
+  ) -> Restaurant?
 }
 
 struct RestaurantRandomizer: RestaurantRandomizerProtocol {
@@ -184,7 +192,29 @@ struct RestaurantRandomizer: RestaurantRandomizerProtocol {
     // Fallback
     return candidates.last
   }
+  
+  // MARK: - Rating Fallback (para Apple Maps)
+  
+  /// Tenta pick com o contexto atual; se ratingPriority==.only e retornar nil,
+  /// relaxa para .prefer e tenta novamente.
+  func pickWithRatingFallback(
+    from restaurants: [Restaurant],
+    context: PreferenceContext,
+    excludeRestaurantIDs: Set<String>
+  ) -> Restaurant? {
+    // Primeiro tenta com o contexto original
+    if let result = pick(from: restaurants, context: context, excludeRestaurantIDs: excludeRestaurantIDs) {
+      return result
+    }
+    
+    // Se era .only e não encontrou nada, relaxar para .prefer
+    if context.ratingPriority == .only {
+      var relaxedContext = context
+      relaxedContext.ratingPriority = .prefer
+      return pick(from: restaurants, context: relaxedContext, excludeRestaurantIDs: excludeRestaurantIDs)
+    }
+    
+    return nil
+  }
 }
-
-
 

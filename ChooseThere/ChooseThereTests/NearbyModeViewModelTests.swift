@@ -150,6 +150,14 @@ final class MockRestaurantRandomizer: RestaurantRandomizerProtocol {
     }
     return restaurants.first { !excludeRestaurantIDs.contains($0.id) }
   }
+  
+  func pickWithRatingFallback(
+    from restaurants: [Restaurant],
+    context: PreferenceContext,
+    excludeRestaurantIDs: Set<String>
+  ) -> Restaurant? {
+    return pick(from: restaurants, context: context, excludeRestaurantIDs: excludeRestaurantIDs)
+  }
 }
 
 // MARK: - NearbyModeViewModelTests
