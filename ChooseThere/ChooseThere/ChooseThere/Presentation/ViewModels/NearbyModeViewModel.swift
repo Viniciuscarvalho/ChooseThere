@@ -590,5 +590,52 @@ final class NearbyModeViewModel {
       avoidTags.insert(tag)
     }
   }
+
+  // MARK: - Grouping Logic
+
+  /// Agrupa resultados por faixas de distância
+  /// Retorna apenas brackets com itens, ordenados por proximidade
+  var groupedResults: [DistanceBracket: [any NearbyDisplayable]] {
+    let items: [any NearbyDisplayable]
+
+    switch searchState {
+    case .localResults(let restaurants):
+      items = restaurants.map { $0 as any NearbyDisplayable }
+    case .appleMapsResults(let places):
+      items = places.map { $0 as any NearbyDisplayable }
+    default:
+      return [:]
+    }
+
+    var grouped: [DistanceBracket: [any NearbyDisplayable]] = [:]
+
+    for item in items {
+      guard let distance = item.distanceKm else { continue }
+
+      for bracket in DistanceBracket.allCases {
+        if bracket.contains(distanceKm: distance) {
+          grouped[bracket, default: []].append(item)
+          break
+        }
+      }
+    }
+
+    // Ordenar itens dentro de cada grupo por rating/alfabético
+    for bracket in grouped.keys {
+      grouped[bracket]?.sort { item1, item2 in
+        if let r1 = item1.displayRating, let r2 = item2.displayRating {
+          return r1 > r2 // Maior rating primeiro
+        }
+        return item1.displayName < item2.displayName // Alfabético se sem rating
+      }
+    }
+
+    return grouped
+  }
+
+  /// Brackets que possuem resultados, ordenados por proximidade
+  var visibleBrackets: [DistanceBracket] {
+    DistanceBracket.allCases.filter { groupedResults[$0]?.isEmpty == false }
+  }
 }
 

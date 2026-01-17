@@ -37,6 +37,9 @@ struct NearbyPlace: Identifiable, Equatable, Hashable, Codable {
   /// Número de telefone (opcional)
   let phoneNumber: String?
 
+  /// Distância calculada em quilômetros (usada para agrupamento)
+  var distanceKm: Double?
+
   // MARK: - Computed Properties
 
   /// Coordenada como CLLocationCoordinate2D
@@ -54,7 +57,8 @@ struct NearbyPlace: Identifiable, Equatable, Hashable, Codable {
     longitude: Double,
     categoryHint: String? = nil,
     externalLink: URL? = nil,
-    phoneNumber: String? = nil
+    phoneNumber: String? = nil,
+    distanceKm: Double? = nil
   ) {
     self.id = id
     self.name = name
@@ -64,6 +68,7 @@ struct NearbyPlace: Identifiable, Equatable, Hashable, Codable {
     self.categoryHint = categoryHint
     self.externalLink = externalLink
     self.phoneNumber = phoneNumber
+    self.distanceKm = distanceKm
   }
 
   /// Cria um NearbyPlace com ID gerado automaticamente
@@ -74,7 +79,8 @@ struct NearbyPlace: Identifiable, Equatable, Hashable, Codable {
     longitude: Double,
     categoryHint: String? = nil,
     externalLink: URL? = nil,
-    phoneNumber: String? = nil
+    phoneNumber: String? = nil,
+    distanceKm: Double? = nil
   ) -> NearbyPlace {
     // Gera ID estável baseado em nome + coordenadas arredondadas
     let coordKey = String(format: "%.5f|%.5f", latitude, longitude)
@@ -89,7 +95,8 @@ struct NearbyPlace: Identifiable, Equatable, Hashable, Codable {
       longitude: longitude,
       categoryHint: categoryHint,
       externalLink: externalLink,
-      phoneNumber: phoneNumber
+      phoneNumber: phoneNumber,
+      distanceKm: distanceKm
     )
   }
 }

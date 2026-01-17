@@ -294,5 +294,41 @@ enum AppSettingsStorage {
   static func markCityOnboardingCompleted() {
     hasCityOnboardingCompleted = true
   }
+
+  // MARK: - Location Onboarding
+
+  private static let hasShownLocationOnboardingKey = "hasShownLocationOnboarding"
+  private static let hasSkippedLocationOnboardingKey = "hasSkippedLocationOnboarding"
+
+  /// Flag indicando se já exibiu onboarding de localização
+  /// Marcado como true após primeira apresentação, nunca resetado
+  static var hasShownLocationOnboarding: Bool {
+    get { UserDefaults.standard.bool(forKey: hasShownLocationOnboardingKey) }
+    set { UserDefaults.standard.set(newValue, forKey: hasShownLocationOnboardingKey) }
+  }
+
+  /// Flag indicando se usuário pulou onboarding de localização
+  /// Usado para decidir quando solicitar permissão novamente
+  static var hasSkippedLocationOnboarding: Bool {
+    get { UserDefaults.standard.bool(forKey: hasSkippedLocationOnboardingKey) }
+    set { UserDefaults.standard.set(newValue, forKey: hasSkippedLocationOnboardingKey) }
+  }
+
+  /// Marca onboarding de localização como mostrado
+  static func markLocationOnboardingShown() {
+    hasShownLocationOnboarding = true
+  }
+
+  /// Marca que usuário pulou onboarding de localização
+  static func markLocationOnboardingSkipped() {
+    hasShownLocationOnboarding = true
+    hasSkippedLocationOnboarding = true
+  }
+
+  /// Marca que usuário concedeu permissão de localização
+  static func markLocationPermissionGranted() {
+    hasShownLocationOnboarding = true
+    hasSkippedLocationOnboarding = false
+  }
 }
 

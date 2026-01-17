@@ -12,6 +12,7 @@ struct PreferencesView: View {
   @Environment(AppRouter.self) private var router
   @Environment(\.modelContext) private var modelContext
   @Environment(\.openURL) private var openURL
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   @State private var viewModel: PreferencesViewModel?
   @State private var nearbyViewModel: NearbyModeViewModel?
@@ -312,12 +313,19 @@ struct PreferencesView: View {
 
   private func nearbyResultsView(restaurants: [Restaurant], nearbyVM: NearbyModeViewModel) -> some View {
     let linkOpener = ExternalLinkOpener(openURL: openURL)
-    
+
     return VStack(alignment: .leading, spacing: 12) {
+      // Header com contagem e botão de atualizar
       HStack {
-        Text("\(restaurants.count) restaurantes encontrados")
-          .font(.headline)
-          .foregroundStyle(AppColors.textPrimary)
+        HStack(spacing: 6) {
+          Image(systemName: "externaldrive.fill")
+            .font(.system(size: 14))
+            .foregroundStyle(AppColors.primary)
+
+          Text("\(restaurants.count) restaurantes encontrados")
+            .font(.headline)
+            .foregroundStyle(AppColors.textPrimary)
+        }
 
         Spacer()
 
@@ -331,19 +339,78 @@ struct PreferencesView: View {
             .foregroundStyle(AppColors.primary)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Atualizar busca")
       }
+      .padding(.horizontal, 16)
+      .padding(.top, 16)
 
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 16) {
-          ForEach(restaurants.prefix(10)) { restaurant in
-            nearbyRestaurantCardNew(restaurant: restaurant, nearbyVM: nearbyVM, linkOpener: linkOpener)
-              .frame(width: 280)
-          }
+      // Badge indicando fonte Minha Base
+      HStack(spacing: 4) {
+        Image(systemName: "checkmark.seal.fill")
+          .font(.system(size: 10))
+        Text("Minha Base")
+          .font(.caption2)
+      }
+      .foregroundStyle(AppColors.textSecondary)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 4)
+      .background(AppColors.divider.opacity(0.5), in: Capsule())
+      .padding(.horizontal, 16)
+
+      // Lista vertical agrupada por distância
+      nearbyGroupedList(nearbyVM: nearbyVM, linkOpener: linkOpener)
+        .padding(.bottom, 16)
+    }
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  @ViewBuilder
+  private func nearbyGroupedList(nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+      ForEach(nearbyVM.visibleBrackets, id: \.self) { bracket in
+        Section {
+          nearbyBracketContent(bracket: bracket, nearbyVM: nearbyVM, linkOpener: linkOpener)
+        } header: {
+          DistanceGroupHeaderView(
+            bracket: bracket,
+            count: nearbyVM.groupedResults[bracket]?.count ?? 0
+          )
         }
       }
     }
-    .padding(16)
-    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  @ViewBuilder
+  private func nearbyBracketContent(bracket: DistanceBracket, nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    if let items = nearbyVM.groupedResults[bracket] {
+      ForEach(Array(items.enumerated()), id: \.element.displayId) { index, item in
+        nearbyItemCard(item: item, index: index, nearbyVM: nearbyVM, linkOpener: linkOpener)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func nearbyItemCard(item: any NearbyDisplayable, index: Int, nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    UnifiedRestaurantCard(
+      item: item,
+      onTap: {
+        if let restaurant = item as? Restaurant {
+          router.pushOverlay(.result(restaurantId: restaurant.id))
+        }
+      },
+      onExternalAction: { action in
+        if let restaurant = item as? Restaurant {
+          handleNearbyExternalAction(action, for: restaurant, linkOpener: linkOpener)
+        }
+      }
+    )
+    .padding(.horizontal, 16)
+    .padding(.vertical, 6)
+    .transition(.opacity.combined(with: .move(edge: .top)))
+    .animation(
+      reduceMotion ? .none : .easeOut(duration: 0.3).delay(Double(index) * 0.05),
+      value: nearbyVM.searchState
+    )
   }
 
   private func nearbyRestaurantCardNew(
@@ -365,6 +432,7 @@ struct PreferencesView: View {
     )
   }
   
+  /// Handler for RestaurantCard using QuickAction
   private func handleNearbyQuickAction(
     _ action: QuickAction,
     for restaurant: Restaurant,
@@ -399,12 +467,44 @@ struct PreferencesView: View {
     }
   }
 
+  /// Handler for UnifiedRestaurantCard using ExternalAction
+  private func handleNearbyExternalAction(
+    _ action: ExternalAction,
+    for restaurant: Restaurant,
+    linkOpener: ExternalLinkOpener
+  ) {
+    switch action {
+    case .tripAdvisor:
+      if let url = restaurant.tripAdvisorURL {
+        linkOpener.openTripAdvisor(url: url)
+      }
+    case .ifood:
+      if let url = restaurant.iFoodURL {
+        linkOpener.openIFood(url: url)
+      }
+    case .ride99:
+      linkOpener.openRideOrRoute(
+        ride99URL: restaurant.ride99URL,
+        restaurantName: restaurant.name,
+        latitude: restaurant.lat,
+        longitude: restaurant.lng
+      )
+    case .maps:
+      linkOpener.openRouteInMaps(
+        name: restaurant.name,
+        latitude: restaurant.lat,
+        longitude: restaurant.lng
+      )
+    }
+  }
+
   // MARK: - Apple Maps Results View
 
   private func appleMapsResultsView(places: [NearbyPlace], nearbyVM: NearbyModeViewModel) -> some View {
     let linkOpener = ExternalLinkOpener(openURL: openURL)
-    
+
     return VStack(alignment: .leading, spacing: 12) {
+      // Header com contagem e botão de atualizar
       HStack {
         HStack(spacing: 6) {
           Image(systemName: "map.fill")
@@ -430,6 +530,8 @@ struct PreferencesView: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Atualizar busca")
       }
+      .padding(.horizontal, 16)
+      .padding(.top, 16)
 
       // Badge indicando fonte Apple Maps
       HStack(spacing: 4) {
@@ -442,18 +544,81 @@ struct PreferencesView: View {
       .padding(.horizontal, 8)
       .padding(.vertical, 4)
       .background(AppColors.divider.opacity(0.5), in: Capsule())
+      .padding(.horizontal, 16)
 
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 16) {
-          ForEach(places.prefix(15)) { place in
-            appleMapsPlaceCardNew(place: place, nearbyVM: nearbyVM, linkOpener: linkOpener)
-              .frame(width: 280)
-          }
+      // Lista vertical agrupada por distância
+      appleMapsGroupedList(nearbyVM: nearbyVM, linkOpener: linkOpener)
+        .padding(.bottom, 16)
+    }
+    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  @ViewBuilder
+  private func appleMapsGroupedList(nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+      ForEach(nearbyVM.visibleBrackets, id: \.self) { bracket in
+        Section {
+          appleMapsBracketContent(bracket: bracket, nearbyVM: nearbyVM, linkOpener: linkOpener)
+        } header: {
+          DistanceGroupHeaderView(
+            bracket: bracket,
+            count: nearbyVM.groupedResults[bracket]?.count ?? 0
+          )
         }
       }
     }
-    .padding(16)
-    .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  @ViewBuilder
+  private func appleMapsBracketContent(bracket: DistanceBracket, nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    if let items = nearbyVM.groupedResults[bracket] {
+      ForEach(Array(items.enumerated()), id: \.element.displayId) { index, item in
+        appleMapsItemCard(item: item, index: index, nearbyVM: nearbyVM, linkOpener: linkOpener)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func appleMapsItemCard(item: any NearbyDisplayable, index: Int, nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    UnifiedRestaurantCard(
+      item: item,
+      onTap: {
+        if let place = item as? NearbyPlace {
+          router.pushOverlay(.nearbyPlaceResult(place))
+        }
+      },
+      onExternalAction: { action in
+        if let place = item as? NearbyPlace {
+          handleAppleMapsQuickAction(action, for: place, linkOpener: linkOpener)
+        }
+      }
+    )
+    .padding(.horizontal, 16)
+    .padding(.vertical, 6)
+    .transition(.opacity.combined(with: .move(edge: .top)))
+    .animation(
+      reduceMotion ? .none : .easeOut(duration: 0.3).delay(Double(index) * 0.05),
+      value: nearbyVM.searchState
+    )
+  }
+
+  /// Handles quick actions for Apple Maps places
+  private func handleAppleMapsQuickAction(
+    _ action: ExternalAction,
+    for place: NearbyPlace,
+    linkOpener: ExternalLinkOpener
+  ) {
+    switch action {
+    case .maps:
+      linkOpener.openRouteInMaps(
+        name: place.name,
+        latitude: place.latitude,
+        longitude: place.longitude
+      )
+    default:
+      // Apple Maps places only support maps action
+      break
+    }
   }
 
   private func appleMapsPlaceCardNew(

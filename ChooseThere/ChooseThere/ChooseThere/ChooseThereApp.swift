@@ -11,6 +11,8 @@ import SwiftUI
 @main
 struct ChooseThereApp: App {
   @State private var router = AppRouter()
+  @State private var showLocationOnboarding = false
+  @State private var locationManager = LocationManager()
 
   var sharedModelContainer: ModelContainer = {
     let schema = Schema([
@@ -56,9 +58,40 @@ struct ChooseThereApp: App {
         .onAppear {
           let context = sharedModelContainer.mainContext
           RestaurantSeeder.seedIfNeeded(context: context)
+          checkAndShowLocationOnboarding()
+        }
+        .sheet(isPresented: $showLocationOnboarding) {
+          LocationOnboardingView(
+            locationManager: locationManager,
+            onPermissionGranted: {
+              AppSettingsStorage.markLocationPermissionGranted()
+            },
+            onSkip: {
+              AppSettingsStorage.markLocationOnboardingSkipped()
+            }
+          )
+          .interactiveDismissDisabled()
         }
     }
     .modelContainer(sharedModelContainer)
+  }
+
+  // MARK: - Location Onboarding
+
+  /// Verifica se deve mostrar onboarding de localização
+  private func checkAndShowLocationOnboarding() {
+    // Só mostrar se:
+    // 1. Nunca mostrou antes
+    // 2. Não tem permissão já concedida
+    let shouldShow = !AppSettingsStorage.hasShownLocationOnboarding &&
+                     !locationManager.status.isAuthorized
+
+    if shouldShow {
+      // Delay pequeno para evitar apresentação no frame inicial
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        showLocationOnboarding = true
+      }
+    }
   }
 }
 

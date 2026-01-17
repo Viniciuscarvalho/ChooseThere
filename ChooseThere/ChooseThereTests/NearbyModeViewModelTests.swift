@@ -497,6 +497,147 @@ final class NearbyModeViewModelTests: XCTestCase {
     XCTAssertNil(viewModel.reRoll())
   }
 
+  // MARK: - Grouping Logic Tests
+
+  func testGroupedResults_emptyState_returnsEmptyDictionary() {
+    // Given: searchState = .idle (initial state)
+    // When: access groupedResults
+    let result = viewModel.groupedResults
+
+    // Then: should return empty dictionary
+    XCTAssertTrue(result.isEmpty)
+  }
+
+  func testGroupedResults_singleRestaurant_groupsCorrectly() async {
+    // Given: 1 restaurant at 0.5km (veryClose bracket)
+    let restaurant = makeRestaurant(id: "close", lat: -23.5636, lng: -46.6545) // ~0.5km
+    mockRepository.mockRestaurants = [restaurant]
+
+    // When: search and access groupedResults
+    await viewModel.searchNearby()
+
+    // Then: should be in veryClose bracket
+    let result = viewModel.groupedResults
+    XCTAssertEqual(result[.veryClose]?.count, 1)
+    XCTAssertNil(result[.close])
+    XCTAssertNil(result[.medium])
+    XCTAssertNil(result[.far])
+  }
+
+  func testGroupedResults_multipleBrackets_distributesProperly() async {
+    // Given: restaurants at different distances
+    let restaurants = [
+      makeRestaurant(id: "veryClose", lat: -23.5636, lng: -46.6545),  // ~0.5km
+      makeRestaurant(id: "close", lat: -23.5800, lng: -46.6600),       // ~2km
+      makeRestaurant(id: "medium", lat: -23.6000, lng: -46.6800),      // ~5km
+      makeRestaurant(id: "far", lat: -23.6500, lng: -46.7200)          // ~12km
+    ]
+    mockRepository.mockRestaurants = restaurants
+    viewModel.radiusKm = 15 // Increase radius to include all
+
+    // When: search and access groupedResults
+    await viewModel.searchNearby()
+
+    // Then: each bracket should have 1 restaurant
+    let result = viewModel.groupedResults
+    XCTAssertEqual(result[.veryClose]?.count ?? 0, 1)
+    XCTAssertEqual(result[.close]?.count ?? 0, 1)
+    XCTAssertEqual(result[.medium]?.count ?? 0, 1)
+    XCTAssertEqual(result[.far]?.count ?? 0, 1)
+  }
+
+  func testGroupedResults_sortsByRatingWithinGroup() async {
+    // Given: 3 restaurants in same bracket with different ratings
+    let restaurants = [
+      makeRestaurantWithRating(id: "mid", rating: 4.5, lat: -23.5636, lng: -46.6545),
+      makeRestaurantWithRating(id: "low", rating: 3.0, lat: -23.5637, lng: -46.6546),
+      makeRestaurantWithRating(id: "high", rating: 5.0, lat: -23.5638, lng: -46.6547)
+    ]
+    mockRepository.mockRestaurants = restaurants
+
+    // When: search and access groupedResults
+    await viewModel.searchNearby()
+
+    // Then: order should be [5.0, 4.5, 3.0]
+    if let items = viewModel.groupedResults[.veryClose] {
+      XCTAssertEqual(items.count, 3)
+      XCTAssertEqual(items[0].displayRating, 5.0)
+      XCTAssertEqual(items[1].displayRating, 4.5)
+      XCTAssertEqual(items[2].displayRating, 3.0)
+    } else {
+      XCTFail("Expected items in veryClose bracket")
+    }
+  }
+
+  func testGroupedResults_sortsByNameWhenNoRating() async {
+    // Given: 3 restaurants without ratings (alphabetical order expected)
+    let restaurants = [
+      makeRestaurant(id: "zara", lat: -23.5636, lng: -46.6545),
+      makeRestaurant(id: "apple", lat: -23.5637, lng: -46.6546),
+      makeRestaurant(id: "mango", lat: -23.5638, lng: -46.6547)
+    ]
+    // Override names for alphabetical test
+    mockRepository.mockRestaurants = [
+      Restaurant(id: "zara", name: "Zara", category: "Restaurante", address: "Test", city: "São Paulo", state: "SP", tags: [], notes: "", externalLink: nil, lat: -23.5636, lng: -46.6545, isFavorite: false, applePlaceResolved: true, ratingAverage: 0, ratingCount: 0),
+      Restaurant(id: "apple", name: "Apple", category: "Restaurante", address: "Test", city: "São Paulo", state: "SP", tags: [], notes: "", externalLink: nil, lat: -23.5637, lng: -46.6546, isFavorite: false, applePlaceResolved: true, ratingAverage: 0, ratingCount: 0),
+      Restaurant(id: "mango", name: "Mango", category: "Restaurante", address: "Test", city: "São Paulo", state: "SP", tags: [], notes: "", externalLink: nil, lat: -23.5638, lng: -46.6547, isFavorite: false, applePlaceResolved: true, ratingAverage: 0, ratingCount: 0)
+    ]
+
+    // When: search and access groupedResults
+    await viewModel.searchNearby()
+
+    // Then: order should be alphabetical [Apple, Mango, Zara]
+    if let items = viewModel.groupedResults[.veryClose] {
+      XCTAssertEqual(items.count, 3)
+      XCTAssertEqual(items[0].displayName, "Apple")
+      XCTAssertEqual(items[1].displayName, "Mango")
+      XCTAssertEqual(items[2].displayName, "Zara")
+    } else {
+      XCTFail("Expected items in veryClose bracket")
+    }
+  }
+
+  func testVisibleBrackets_onlyReturnsNonEmptyBrackets() async {
+    // Given: items only in veryClose and far
+    let restaurants = [
+      makeRestaurant(id: "veryClose", lat: -23.5636, lng: -46.6545),  // ~0.5km
+      makeRestaurant(id: "far", lat: -23.6500, lng: -46.7200)         // ~12km
+    ]
+    mockRepository.mockRestaurants = restaurants
+    viewModel.radiusKm = 15
+
+    // When: search and access visibleBrackets
+    await viewModel.searchNearby()
+
+    // Then: should contain only veryClose and far
+    let brackets = viewModel.visibleBrackets
+    XCTAssertTrue(brackets.contains(.veryClose))
+    XCTAssertTrue(brackets.contains(.far))
+    XCTAssertFalse(brackets.contains(.close))
+    XCTAssertFalse(brackets.contains(.medium))
+  }
+
+  func testVisibleBrackets_ordersCorrectly() async {
+    // Given: items in far, veryClose, medium (unnatural order in data)
+    let restaurants = [
+      makeRestaurant(id: "far", lat: -23.6500, lng: -46.7200),         // ~12km
+      makeRestaurant(id: "veryClose", lat: -23.5636, lng: -46.6545),   // ~0.5km
+      makeRestaurant(id: "medium", lat: -23.6000, lng: -46.6800)       // ~5km
+    ]
+    mockRepository.mockRestaurants = restaurants
+    viewModel.radiusKm = 15
+
+    // When: search and access visibleBrackets
+    await viewModel.searchNearby()
+
+    // Then: should return in correct order [veryClose, medium, far]
+    let brackets = viewModel.visibleBrackets
+    XCTAssertEqual(brackets.count, 3)
+    XCTAssertEqual(brackets[0], .veryClose)
+    XCTAssertEqual(brackets[1], .medium)
+    XCTAssertEqual(brackets[2], .far)
+  }
+
   // MARK: - Reset Session Tests
 
   func testResetSessionClearsDrawnIds() async {
@@ -596,6 +737,35 @@ final class NearbyModeViewModelTests: XCTestCase {
       applePlaceAddress: nil,
       ratingAverage: 0,
       ratingCount: 0,
+      ratingLastVisitedAt: nil
+    )
+  }
+
+  private func makeRestaurantWithRating(
+    id: String,
+    rating: Double,
+    lat: Double = -23.5640,
+    lng: Double = -46.6545
+  ) -> Restaurant {
+    Restaurant(
+      id: id,
+      name: "Test \(id)",
+      category: "Restaurante",
+      address: "Test Address",
+      city: "São Paulo",
+      state: "SP",
+      tags: [],
+      notes: "",
+      externalLink: nil,
+      lat: lat,
+      lng: lng,
+      isFavorite: false,
+      applePlaceResolved: true,
+      applePlaceResolvedAt: nil,
+      applePlaceName: nil,
+      applePlaceAddress: nil,
+      ratingAverage: rating,
+      ratingCount: 10,
       ratingLastVisitedAt: nil
     )
   }

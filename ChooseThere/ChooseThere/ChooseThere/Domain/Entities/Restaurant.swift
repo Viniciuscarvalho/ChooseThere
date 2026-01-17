@@ -51,7 +51,12 @@ struct Restaurant: Identifiable, Equatable, Hashable {
   var ride99URL: URL?
   /// URL de imagem do restaurante (curada manualmente, maior prioridade)
   var imageURL: URL?
-  
+
+  // MARK: - Distance (Nearby Mode)
+
+  /// Distância calculada em quilômetros (usada no modo "Perto de mim")
+  var distanceKm: Double?
+
   // MARK: - Computed Properties
   
   /// Indica se o restaurante tem avaliações
@@ -94,7 +99,8 @@ struct Restaurant: Identifiable, Equatable, Hashable {
     tripAdvisorURL: URL? = nil,
     iFoodURL: URL? = nil,
     ride99URL: URL? = nil,
-    imageURL: URL? = nil
+    imageURL: URL? = nil,
+    distanceKm: Double? = nil
   ) {
     self.id = id
     self.name = name
@@ -119,6 +125,7 @@ struct Restaurant: Identifiable, Equatable, Hashable {
     self.iFoodURL = iFoodURL
     self.ride99URL = ride99URL
     self.imageURL = imageURL
+    self.distanceKm = distanceKm
   }
 }
 

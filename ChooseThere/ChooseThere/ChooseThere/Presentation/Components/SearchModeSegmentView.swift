@@ -10,12 +10,30 @@ import SwiftUI
 /// Segmento de seleção entre "Minha Lista" e "Perto de mim"
 struct SearchModeSegmentView: View {
   @Binding var selectedMode: SearchMode
-  
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  // MARK: - Computed Properties
+
+  /// Modos visíveis baseado na localização atual
+  /// Minha Lista só aparece em São Paulo (onde há dados locais)
+  private var visibleModes: [SearchMode] {
+    if AppSettingsStorage.isLocalBaseAvailableForNearby {
+      return SearchMode.allCases
+    } else {
+      return [.nearby] // Apenas "Perto de mim" fora de SP
+    }
+  }
+
+  /// Animação usada para transições (respeita reduce motion)
+  private var modeAnimation: Animation? {
+    reduceMotion ? .none : .spring(response: 0.3, dampingFraction: 0.8)
+  }
+
   var body: some View {
     HStack(spacing: 0) {
-      ForEach(SearchMode.allCases) { mode in
+      ForEach(visibleModes) { mode in
         Button {
-          withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+          withAnimation(modeAnimation) {
             selectedMode = mode
             AppSettingsStorage.searchMode = mode
           }
@@ -40,6 +58,7 @@ struct SearchModeSegmentView: View {
         .accessibilityLabel(mode.displayName)
         .accessibilityHint(selectedMode == mode ? "Modo selecionado" : "Toque duas vezes para selecionar")
         .accessibilityAddTraits(selectedMode == mode ? .isSelected : [])
+        .transition(.opacity)
       }
     }
     .padding(4)
@@ -47,6 +66,16 @@ struct SearchModeSegmentView: View {
     .shadow(color: Color.black.opacity(0.05), radius: 4, y: 2)
     .accessibilityElement(children: .contain)
     .accessibilityLabel("Modo de busca")
+    .animation(reduceMotion ? .none : .linear(duration: 0.25), value: visibleModes)
+    .onChange(of: visibleModes) { oldValue, newValue in
+      // Se modo atual não está mais visível, mudar para .nearby
+      if !newValue.contains(selectedMode) {
+        withAnimation(modeAnimation) {
+          selectedMode = .nearby
+          AppSettingsStorage.searchMode = .nearby
+        }
+      }
+    }
   }
 }
 
