@@ -68,6 +68,7 @@ enum AppSettingsStorage {
   private static let nearbySelectedTagsKey = "nearbySelectedTags"
   private static let nearbyAvoidTagsKey = "nearbyAvoidTags"
   private static let nearbyRatingPriorityKey = "nearbyRatingPriority"
+  private static let nearbyGroupByDistanceKey = "nearbyGroupByDistance"
   private static let searchModeKey = "searchMode"
   private static let learningEnabledKey = "learningEnabled"
   private static let avoidRepeatsLimitKey = "avoidRepeatsLimit"
@@ -205,6 +206,12 @@ enum AppSettingsStorage {
     set {
       UserDefaults.standard.set(newValue.rawValue, forKey: nearbyRatingPriorityKey)
     }
+  }
+
+  /// Indica se os resultados devem ser agrupados por distância (default: false = lista plana)
+  static var nearbyGroupByDistance: Bool {
+    get { UserDefaults.standard.bool(forKey: nearbyGroupByDistanceKey) }
+    set { UserDefaults.standard.set(newValue, forKey: nearbyGroupByDistanceKey) }
   }
 
   // MARK: - Search Mode

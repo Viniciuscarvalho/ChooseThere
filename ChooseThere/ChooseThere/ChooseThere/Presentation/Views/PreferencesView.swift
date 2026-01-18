@@ -113,6 +113,12 @@ struct PreferencesView: View {
 
         Spacer(minLength: 20)
       }
+      .onAppear {
+        // Auto-search ao entrar na tela
+        Task {
+          await nearbyVM.performInitialSearchIfNeeded()
+        }
+      }
     } else {
       ProgressView()
         .tint(AppColors.primary)
@@ -226,11 +232,25 @@ struct PreferencesView: View {
   }
 
   private var nearbyLoadingView: some View {
-    StateView.loading(
-      message: nearbyViewModel?.source == .appleMaps
-        ? "Buscando no Apple Maps..."
-        : "Buscando restaurantes próximos..."
-    )
+    VStack(alignment: .leading, spacing: 16) {
+      // Mensagem de loading
+      HStack(spacing: 8) {
+        ProgressView()
+          .scaleEffect(0.8)
+          .tint(AppColors.primary)
+
+        Text(nearbyViewModel?.source == .appleMaps
+          ? "Buscando no Apple Maps..."
+          : "Buscando restaurantes próximos...")
+          .font(.subheadline)
+          .foregroundStyle(AppColors.textSecondary)
+      }
+      .padding(.horizontal, 16)
+
+      // Skeleton cards para feedback visual
+      NearbySkeletonList(count: 5)
+    }
+    .accessibilityLabel("Carregando restaurantes próximos")
   }
 
   private func nearbyNoPermissionView(nearbyVM: NearbyModeViewModel) -> some View {
@@ -315,7 +335,7 @@ struct PreferencesView: View {
     let linkOpener = ExternalLinkOpener(openURL: openURL)
 
     return VStack(alignment: .leading, spacing: 12) {
-      // Header com contagem e botão de atualizar
+      // Header com contagem e botão de atualizar com spinner
       HStack {
         HStack(spacing: 6) {
           Image(systemName: "externaldrive.fill")
@@ -331,14 +351,24 @@ struct PreferencesView: View {
 
         Button {
           Task {
-            await nearbyVM.searchNearby()
+            await nearbyVM.refreshSearch()
           }
         } label: {
-          Image(systemName: "arrow.clockwise")
-            .font(.system(size: 16, weight: .medium))
-            .foregroundStyle(AppColors.primary)
+          Group {
+            if nearbyVM.isRefreshing {
+              ProgressView()
+                .scaleEffect(0.8)
+                .tint(AppColors.primary)
+            } else {
+              Image(systemName: "arrow.clockwise")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(AppColors.primary)
+            }
+          }
+          .frame(width: 24, height: 24)
         }
         .buttonStyle(.plain)
+        .disabled(nearbyVM.isRefreshing)
         .accessibilityLabel("Atualizar busca")
       }
       .padding(.horizontal, 16)
@@ -357,11 +387,22 @@ struct PreferencesView: View {
       .background(AppColors.divider.opacity(0.5), in: Capsule())
       .padding(.horizontal, 16)
 
-      // Lista vertical agrupada por distância
-      nearbyGroupedList(nearbyVM: nearbyVM, linkOpener: linkOpener)
+      // Lista plana ordenada por distância (layout simplificado)
+      nearbyResultsList(nearbyVM: nearbyVM, linkOpener: linkOpener)
         .padding(.bottom, 16)
     }
     .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  /// Lista plana ordenada por distância (layout simplificado, sem agrupamento)
+  @ViewBuilder
+  private func nearbyResultsList(nearbyVM: NearbyModeViewModel, linkOpener: ExternalLinkOpener) -> some View {
+    LazyVStack(spacing: 12) {
+      ForEach(Array(nearbyVM.sortedResultsFlat.enumerated()), id: \.element.displayId) { index, item in
+        nearbyItemCard(item: item, index: index, nearbyVM: nearbyVM, linkOpener: linkOpener)
+      }
+    }
+    .padding(.horizontal, 16)
   }
 
   @ViewBuilder
@@ -394,17 +435,22 @@ struct PreferencesView: View {
     UnifiedRestaurantCard(
       item: item,
       onTap: {
+        // Navegar para detalhes baseado no tipo de item
         if let restaurant = item as? Restaurant {
           router.pushOverlay(.result(restaurantId: restaurant.id))
+        } else if let place = item as? NearbyPlace {
+          router.pushOverlay(.nearbyPlaceResult(place))
         }
       },
       onExternalAction: { action in
+        // Tratar ações externas baseado no tipo de item
         if let restaurant = item as? Restaurant {
           handleNearbyExternalAction(action, for: restaurant, linkOpener: linkOpener)
+        } else if let place = item as? NearbyPlace {
+          handleAppleMapsQuickAction(action, for: place, linkOpener: linkOpener)
         }
       }
     )
-    .padding(.horizontal, 16)
     .padding(.vertical, 6)
     .transition(.opacity.combined(with: .move(edge: .top)))
     .animation(
@@ -504,7 +550,7 @@ struct PreferencesView: View {
     let linkOpener = ExternalLinkOpener(openURL: openURL)
 
     return VStack(alignment: .leading, spacing: 12) {
-      // Header com contagem e botão de atualizar
+      // Header com contagem e botão de atualizar com spinner
       HStack {
         HStack(spacing: 6) {
           Image(systemName: "map.fill")
@@ -523,11 +569,21 @@ struct PreferencesView: View {
             await nearbyVM.refreshSearch()
           }
         } label: {
-          Image(systemName: "arrow.clockwise")
-            .font(.system(size: 16, weight: .medium))
-            .foregroundStyle(AppColors.primary)
+          Group {
+            if nearbyVM.isRefreshing {
+              ProgressView()
+                .scaleEffect(0.8)
+                .tint(AppColors.primary)
+            } else {
+              Image(systemName: "arrow.clockwise")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(AppColors.primary)
+            }
+          }
+          .frame(width: 24, height: 24)
         }
         .buttonStyle(.plain)
+        .disabled(nearbyVM.isRefreshing)
         .accessibilityLabel("Atualizar busca")
       }
       .padding(.horizontal, 16)
@@ -546,8 +602,8 @@ struct PreferencesView: View {
       .background(AppColors.divider.opacity(0.5), in: Capsule())
       .padding(.horizontal, 16)
 
-      // Lista vertical agrupada por distância
-      appleMapsGroupedList(nearbyVM: nearbyVM, linkOpener: linkOpener)
+      // Lista plana ordenada por distância (layout simplificado)
+      nearbyResultsList(nearbyVM: nearbyVM, linkOpener: linkOpener)
         .padding(.bottom, 16)
     }
     .background(AppColors.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

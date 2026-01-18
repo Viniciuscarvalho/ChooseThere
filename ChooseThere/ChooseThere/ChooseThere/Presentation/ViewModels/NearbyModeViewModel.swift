@@ -92,10 +92,20 @@ final class NearbyModeViewModel {
   private(set) var selectedRestaurant: Restaurant?
   private(set) var selectedPlace: NearbyPlace?
 
+  /// Indica se já realizou a busca inicial automática
+  private(set) var hasPerformedInitialSearch: Bool = false
+
+  /// Indica se está atualizando (para feedback visual no botão de refresh)
+  private(set) var isRefreshing: Bool = false
+
   /// Raio atual (sincronizado com AppSettingsStorage)
   var radiusKm: Int {
     didSet {
       AppSettingsStorage.nearbyRadiusKm = radiusKm
+      // Auto-search quando raio muda (se já tem resultados)
+      if searchState.hasResults {
+        Task { await searchNearby() }
+      }
     }
   }
 
@@ -131,11 +141,13 @@ final class NearbyModeViewModel {
   var source: NearbySource {
     didSet {
       AppSettingsStorage.nearbySource = source
-      // Resetar estado ao trocar fonte
+      // Resetar estado e auto-search ao trocar fonte
       if oldValue != source {
         searchState = .idle
         nearbyRestaurants = []
         nearbyPlaces = []
+        // Auto-search ao trocar fonte
+        Task { await searchNearby() }
       }
     }
   }
@@ -222,6 +234,18 @@ final class NearbyModeViewModel {
   /// Abre as configurações do sistema
   func openSettings() {
     locationManager.openSettings()
+  }
+
+  /// Executa a busca inicial automaticamente ao entrar na tela (uma única vez)
+  func performInitialSearchIfNeeded() async {
+    guard !hasPerformedInitialSearch else { return }
+    hasPerformedInitialSearch = true
+
+    if hasLocationPermission {
+      await searchNearby()
+    } else {
+      searchState = .noPermission
+    }
   }
 
   /// Busca restaurantes/lugares próximos
@@ -397,7 +421,11 @@ final class NearbyModeViewModel {
   }
 
   /// Força uma nova busca ignorando o cache (apenas Apple Maps)
+  /// Usado pelo botão de refresh e pull-to-refresh
   func refreshSearch() async {
+    isRefreshing = true
+    defer { isRefreshing = false }
+
     guard source == .appleMaps else {
       await searchNearby()
       return
@@ -592,6 +620,19 @@ final class NearbyModeViewModel {
   }
 
   // MARK: - Grouping Logic
+
+  /// Lista plana ordenada por distância (sem agrupamento)
+  /// Usado como layout padrão simplificado
+  var sortedResultsFlat: [any NearbyDisplayable] {
+    switch searchState {
+    case .localResults(let restaurants):
+      return restaurants.sorted { ($0.distanceKm ?? .infinity) < ($1.distanceKm ?? .infinity) }
+    case .appleMapsResults(let places):
+      return places.sorted { ($0.distanceKm ?? .infinity) < ($1.distanceKm ?? .infinity) }
+    default:
+      return []
+    }
+  }
 
   /// Agrupa resultados por faixas de distância
   /// Retorna apenas brackets com itens, ordenados por proximidade

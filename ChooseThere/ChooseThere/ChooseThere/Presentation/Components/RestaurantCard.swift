@@ -104,31 +104,43 @@ struct RestaurantCard: View {
   private var imageContent: some View {
     switch imageLoadState {
     case .loading:
-      ShimmerView()
-      
+      // Mostrar placeholder temático durante o loading para feedback visual imediato
+      CategoryPlaceholderView(category: restaurant.category)
+        .overlay(
+          ShimmerView()
+            .opacity(0.3)
+        )
+
     case .loaded:
       if let url = imageURL {
         AsyncImage(url: url) { phase in
           switch phase {
           case .empty:
-            ShimmerView()
+            CategoryPlaceholderView(category: restaurant.category)
+              .overlay(
+                ShimmerView()
+                  .opacity(0.3)
+              )
           case .success(let image):
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
               .frame(height: imageHeight)
           case .failure:
-            ImagePlaceholder(style: .error, icon: "fork.knife")
+            // Usa placeholder temático em vez de erro genérico
+            CategoryPlaceholderView(category: restaurant.category)
           @unknown default:
-            ImagePlaceholder(style: .empty, icon: "fork.knife")
+            CategoryPlaceholderView(category: restaurant.category)
           }
         }
       } else {
-        ImagePlaceholder(style: .empty, icon: "fork.knife")
+        // Sem URL de imagem - usa placeholder temático da categoria
+        CategoryPlaceholderView(category: restaurant.category)
       }
-      
+
     case .failed:
-      ImagePlaceholder(style: .error, icon: "fork.knife")
+      // Placeholder temático para falhas também
+      CategoryPlaceholderView(category: restaurant.category)
     }
   }
   

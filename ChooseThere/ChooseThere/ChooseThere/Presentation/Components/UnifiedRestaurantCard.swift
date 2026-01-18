@@ -17,6 +17,9 @@ struct UnifiedRestaurantCard: View {
   @ScaledMetric(relativeTo: .body) private var imageSize: CGFloat = 80
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+  // MARK: - Press State for feedback
+  @State private var isPressed: Bool = false
+
   var body: some View {
     HStack(spacing: 12) {
       // Imagem ou ícone placeholder
@@ -74,14 +77,23 @@ struct UnifiedRestaurantCard: View {
     }
     .padding(12)
     .background(AppColors.surface)
-    .clipShape(RoundedRectangle(cornerRadius: 16))
-    .overlay(
-      RoundedRectangle(cornerRadius: 16)
-        .stroke(AppColors.divider.opacity(0.5), lineWidth: 1)
-    )
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+    .scaleEffect(isPressed ? 0.98 : 1.0)
+    .animation(reduceMotion ? .none : .spring(response: 0.2), value: isPressed)
     .contentShape(Rectangle())
     .onTapGesture {
-      onTap()
+      // Feedback visual rápido
+      withAnimation(.spring(response: 0.15)) {
+        isPressed = true
+      }
+      // Reset e executa ação
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        withAnimation(.spring(response: 0.15)) {
+          isPressed = false
+        }
+        onTap()
+      }
     }
     .accessibilityElement(children: .contain)
     .accessibilityLabel(accessibilityCardLabel)
@@ -131,37 +143,21 @@ struct UnifiedRestaurantCard: View {
   }
 
   private var imagePlaceholder: some View {
+    // Usa o CategoryPlaceholderView para consistência visual com RestaurantCard
+    // Diferencia visualmente Apple Maps vs Minha Base através do tema de categoria
     ZStack {
-      RoundedRectangle(cornerRadius: 12)
-        .fill(AppColors.divider.opacity(0.3))
-      Image(systemName: categoryIcon)
-        .font(.system(size: 28))
-        .foregroundColor(AppColors.textSecondary.opacity(0.6))
+      if item.dataSource == .appleMaps {
+        // Para Apple Maps, usa um overlay sutil para diferenciar
+        CategoryPlaceholderView(category: item.displayCategory)
+          .overlay(
+            RoundedRectangle(cornerRadius: 12)
+              .stroke(AppColors.accent.opacity(0.3), lineWidth: 1)
+          )
+      } else {
+        CategoryPlaceholderView(category: item.displayCategory)
+      }
     }
-  }
-
-  private var categoryIcon: String {
-    let category = item.displayCategory.lowercased()
-    switch category {
-    case let c where c.contains("japonês") || c.contains("japan") || c.contains("sushi"):
-      return "fish.fill"
-    case let c where c.contains("italiano") || c.contains("pizza") || c.contains("pasta"):
-      return "fork.knife"
-    case let c where c.contains("café") || c.contains("coffee") || c.contains("padaria"):
-      return "cup.and.saucer.fill"
-    case let c where c.contains("burger") || c.contains("hamburguer") || c.contains("lanche"):
-      return "takeoutbag.and.cup.and.straw.fill"
-    case let c where c.contains("bar") || c.contains("drink") || c.contains("cerveja"):
-      return "wineglass.fill"
-    case let c where c.contains("churrasco") || c.contains("carne") || c.contains("bbq"):
-      return "flame.fill"
-    case let c where c.contains("vegetariano") || c.contains("vegan") || c.contains("salada"):
-      return "leaf.fill"
-    case let c where c.contains("doce") || c.contains("sobremesa") || c.contains("sorvete"):
-      return "birthday.cake.fill"
-    default:
-      return "fork.knife"
-    }
+    .clipShape(RoundedRectangle(cornerRadius: 12))
   }
 
   // MARK: - Distance Formatting
