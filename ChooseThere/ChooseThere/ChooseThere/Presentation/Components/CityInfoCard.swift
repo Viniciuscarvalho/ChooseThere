@@ -11,14 +11,28 @@ import SwiftUI
 struct CityInfoCard: View {
   let cityDisplayName: String
   let onChangeTapped: () -> Void
-  
+
+  /// Indica se estamos em São Paulo (com base local disponível)
+  private var isSaoPaulo: Bool {
+    AppSettingsStorage.isSaoPauloSelected
+  }
+
+  /// Descrição da fonte de dados
+  private var dataSourceDescription: String {
+    if isSaoPaulo {
+      return "Minha Base + Apple Maps"
+    } else {
+      return "via Apple Maps"
+    }
+  }
+
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: "mappin.circle.fill")
         .font(.system(size: 28))
         .foregroundStyle(AppColors.accent)
 
-      VStack(alignment: .leading, spacing: 2) {
+      VStack(alignment: .leading, spacing: 4) {
         Text("Buscando em")
           .font(.caption)
           .foregroundStyle(AppColors.textSecondary)
@@ -26,6 +40,15 @@ struct CityInfoCard: View {
         Text(cityDisplayName)
           .font(.headline)
           .foregroundStyle(AppColors.textPrimary)
+
+        // Badge indicando fonte de dados
+        HStack(spacing: 4) {
+          Image(systemName: isSaoPaulo ? "externaldrive.fill" : "map.fill")
+            .font(.system(size: 9))
+          Text(dataSourceDescription)
+            .font(.caption2)
+        }
+        .foregroundStyle(isSaoPaulo ? AppColors.primary : AppColors.accent)
       }
 
       Spacer()

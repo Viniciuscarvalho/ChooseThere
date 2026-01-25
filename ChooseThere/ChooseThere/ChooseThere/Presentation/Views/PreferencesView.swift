@@ -80,7 +80,7 @@ struct PreferencesView: View {
   }
 
   private var searchModeSegment: some View {
-    SearchModeSegmentView(selectedMode: $searchMode)
+    ModeSelectionCardView(selectedMode: $searchMode)
   }
 
   // MARK: - My List Content
@@ -701,52 +701,69 @@ struct PreferencesView: View {
   }
 
   private var nearbyActionButton: some View {
-    Button {
-      guard let nearbyVM = nearbyViewModel else { return }
-      nearbyVM.resetSession()
-      Task {
-        await nearbyVM.searchNearby()
-        // Sortear baseado na fonte efetiva (considera SP-only)
-        if nearbyVM.effectiveSource == .localBase {
-          if !nearbyVM.nearbyRestaurants.isEmpty {
-            if let restaurantId = nearbyVM.draw() {
-              UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
-              router.pushOverlay(.roulette)
+    VStack(spacing: 8) {
+      Button {
+        guard let nearbyVM = nearbyViewModel else { return }
+        nearbyVM.resetSession()
+        Task {
+          await nearbyVM.searchNearby()
+          // Sortear baseado na fonte efetiva (considera SP-only)
+          if nearbyVM.effectiveSource == .localBase {
+            if !nearbyVM.nearbyRestaurants.isEmpty {
+              if let restaurantId = nearbyVM.draw() {
+                UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
+                router.pushOverlay(.roulette)
+              }
             }
-          }
-        } else {
-          // Apple Maps: sortear um lugar e ir direto para detalhe
-          if !nearbyVM.nearbyPlaces.isEmpty {
-            if let place = nearbyVM.drawPlace() {
-              // Navegar diretamente para o detalhe do lugar
-              router.pushOverlay(.nearbyPlaceResult(place))
+          } else {
+            // Apple Maps: sortear um lugar e ir direto para detalhe
+            if !nearbyVM.nearbyPlaces.isEmpty {
+              if let place = nearbyVM.drawPlace() {
+                // Navegar diretamente para o detalhe do lugar
+                router.pushOverlay(.nearbyPlaceResult(place))
+              }
             }
           }
         }
-      }
-    } label: {
-      HStack {
-        if nearbyViewModel?.searchState.isLoading == true {
-          ProgressView()
-            .tint(AppColors.textPrimary)
-        } else {
-          Image(systemName: "location.fill")
+      } label: {
+        HStack(spacing: 10) {
+          if nearbyViewModel?.searchState.isLoading == true {
+            ProgressView()
+              .tint(AppColors.textPrimary)
+          } else {
+            Image(systemName: "location.fill")
+              .font(.system(size: 18, weight: .semibold))
+          }
+          Text("Sortear perto de mim")
         }
-        Text("Sortear perto de mim")
+        .font(.headline)
+        .foregroundStyle(AppColors.textPrimary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(AppColors.accent, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .shadow(color: AppColors.accent.opacity(0.3), radius: 12, y: 4)
       }
-      .font(.headline)
-      .foregroundStyle(AppColors.textPrimary)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 14)
-      .background(AppColors.accent, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-      .shadow(color: AppColors.accent.opacity(0.3), radius: 8, y: 4)
+      .disabled(nearbyViewModel?.searchState.isLoading == true)
+      .accessibilityLabel("Sortear perto de mim")
+      .accessibilityHint("Sorteia um restaurante próximo à sua localização")
+      .accessibilityAddTraits(.isButton)
+
+      // Hint contextual
+      nearbyButtonHint
     }
-    .disabled(nearbyViewModel?.searchState.isLoading == true)
-    .padding(.horizontal, 32)
+    .padding(.horizontal, 24)
     .padding(.vertical, 12)
-    .accessibilityLabel("Sortear perto de mim")
-    .accessibilityHint("Sorteia um restaurante próximo à sua localização")
-    .accessibilityAddTraits(.isButton)
+  }
+
+  /// Hint contextual para o botão nearby
+  private var nearbyButtonHint: some View {
+    let sourceText = nearbyViewModel?.effectiveSource == .localBase ? "Minha Base" : "Apple Maps"
+    let radiusText = "\(nearbyViewModel?.radiusKm ?? 3)km"
+
+    return Text("Buscando via \(sourceText) • Raio de \(radiusText)")
+      .font(.caption)
+      .foregroundStyle(AppColors.textSecondary)
+      .frame(maxWidth: .infinity)
   }
 
 
@@ -1030,35 +1047,58 @@ struct PreferencesView: View {
   }
 
   private func sortButton(vm: PreferencesViewModel) -> some View {
-    Button {
-      vm.resetSession()
-      if let restaurantId = vm.draw() {
-        // Store picked id for roulette to consume
-        UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
-        router.pushOverlay(.roulette)
-      } else {
-        showNoResultsAlert = true
+    VStack(spacing: 8) {
+      Button {
+        vm.resetSession()
+        if let restaurantId = vm.draw() {
+          // Store picked id for roulette to consume
+          UserDefaults.standard.set(restaurantId, forKey: "pendingRestaurantId")
+          router.pushOverlay(.roulette)
+        } else {
+          showNoResultsAlert = true
+        }
+      } label: {
+        HStack(spacing: 10) {
+          Image(systemName: "shuffle")
+            .font(.system(size: 18, weight: .semibold))
+          Text("Sortear agora")
+        }
+        .font(.headline)
+        .foregroundStyle(AppColors.textPrimary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .shadow(color: AppColors.primary.opacity(0.3), radius: 12, y: 4)
       }
-    } label: {
-      HStack {
-        Image(systemName: "dice.fill")
-        Text("Sortear agora")
-      }
-      .font(.headline)
-      .foregroundStyle(AppColors.textPrimary)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 14)
-      .background(AppColors.primary, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-      .shadow(color: AppColors.primary.opacity(0.3), radius: 8, y: 4)
+      .accessibilityLabel("Sortear agora")
+
+      // Hint contextual
+      sortButtonHint(vm: vm)
     }
-    .padding(.horizontal, 32) // Mesmo padding horizontal da TabBar
+    .padding(.horizontal, 24)
     .padding(.vertical, 12)
-    .accessibilityLabel("Sortear agora")
     .alert("Nenhum restaurante encontrado", isPresented: $showNoResultsAlert) {
       Button("OK", role: .cancel) { }
     } message: {
       Text("Não encontramos restaurantes com os filtros selecionados. Tente ajustar as tags ou remover filtros.")
     }
+  }
+
+  /// Hint contextual abaixo do botão de sorteio
+  private func sortButtonHint(vm: PreferencesViewModel) -> some View {
+    let activeFiltersCount = vm.selectedTags.count + (vm.selectedPriceTier != nil ? 1 : 0) + (vm.selectedRadius != nil ? 1 : 0)
+    let hintText: String
+    if activeFiltersCount > 0 {
+      hintText = "Usando: Minha Lista com \(activeFiltersCount) filtro\(activeFiltersCount > 1 ? "s" : "") ativo\(activeFiltersCount > 1 ? "s" : "")"
+    } else {
+      hintText = "Usando: Minha Lista (todos os restaurantes)"
+    }
+
+    return Text(hintText)
+      .font(.caption)
+      .foregroundStyle(AppColors.textSecondary)
+      .frame(maxWidth: .infinity)
+      .accessibilityLabel(hintText)
   }
 
   // MARK: - Helpers

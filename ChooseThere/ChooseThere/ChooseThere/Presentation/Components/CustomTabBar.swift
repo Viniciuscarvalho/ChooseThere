@@ -17,7 +17,7 @@ enum Tab: Int, CaseIterable {
     switch self {
     case .history: return "clock.arrow.circlepath"
     case .draw: return "dice.fill"
-    case .restaurants: return "list.bullet"
+    case .restaurants: return "externaldrive.fill"
     }
   }
 
@@ -25,7 +25,7 @@ enum Tab: Int, CaseIterable {
     switch self {
     case .history: return "Histórico"
     case .draw: return "Escolher"
-    case .restaurants: return "Restaurantes"
+    case .restaurants: return "Minha Base"
     }
   }
 
@@ -36,15 +36,30 @@ enum Tab: Int, CaseIterable {
   func select() {
     NotificationCenter.default.post(name: Tab.changeTabNotification, object: self)
   }
+
+  /// Tabs visíveis baseado na cidade selecionada
+  /// A aba "Minha Base" só aparece quando São Paulo está selecionado
+  static var visibleTabs: [Tab] {
+    if AppSettingsStorage.isSaoPauloSelected {
+      return [.history, .draw, .restaurants]
+    } else {
+      return [.history, .draw]
+    }
+  }
 }
 
 /// TabBar customizada com aba central destacada - estilo ilha flutuante
 struct CustomTabBar: View {
   @Binding var selectedTab: Tab
 
+  /// Tabs visíveis (reativo à mudança de cidade)
+  private var visibleTabs: [Tab] {
+    Tab.visibleTabs
+  }
+
   var body: some View {
     HStack(spacing: 0) {
-      ForEach(Tab.allCases, id: \.rawValue) { tab in
+      ForEach(visibleTabs, id: \.rawValue) { tab in
         if tab == .draw {
           // Aba central destacada
           centralTabButton(tab: tab)

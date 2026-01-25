@@ -60,12 +60,26 @@ struct RestaurantListView: View {
   // MARK: - Header
 
   private func headerSection(vm: RestaurantListViewModel) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text("Restaurantes")
-        .font(.title.weight(.bold))
-        .foregroundStyle(AppColors.textPrimary)
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Text("Minha Base")
+          .font(.title.weight(.bold))
+          .foregroundStyle(AppColors.textPrimary)
 
-      Text("\(vm.filteredRestaurants.count) lugares para explorar")
+        // Badge indicando que são restaurantes salvos
+        HStack(spacing: 4) {
+          Image(systemName: "checkmark.seal.fill")
+            .font(.system(size: 10))
+          Text("São Paulo")
+            .font(.caption2.weight(.medium))
+        }
+        .foregroundStyle(AppColors.primary)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(AppColors.primary.opacity(0.12), in: Capsule())
+      }
+
+      Text("\(vm.filteredRestaurants.count) restaurantes salvos para explorar")
         .font(.subheadline)
         .foregroundStyle(AppColors.textSecondary)
     }

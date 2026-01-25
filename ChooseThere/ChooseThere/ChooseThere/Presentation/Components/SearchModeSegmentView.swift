@@ -14,10 +14,15 @@ struct SearchModeSegmentView: View {
 
   // MARK: - Computed Properties
 
+  /// Indica se estamos em São Paulo (com base local disponível)
+  private var isSaoPaulo: Bool {
+    AppSettingsStorage.isSaoPauloSelected
+  }
+
   /// Modos visíveis baseado na localização atual
   /// Minha Lista só aparece em São Paulo (onde há dados locais)
   private var visibleModes: [SearchMode] {
-    if AppSettingsStorage.isLocalBaseAvailableForNearby {
+    if isSaoPaulo {
       return SearchMode.allCases
     } else {
       return [.nearby] // Apenas "Perto de mim" fora de SP
@@ -30,6 +35,20 @@ struct SearchModeSegmentView: View {
   }
 
   var body: some View {
+    VStack(spacing: 8) {
+      // Segmento principal
+      segmentedControl
+
+      // Info contextual para usuário fora de SP
+      if !isSaoPaulo {
+        nearbyOnlyInfo
+      }
+    }
+  }
+
+  // MARK: - Segmented Control
+
+  private var segmentedControl: some View {
     HStack(spacing: 0) {
       ForEach(visibleModes) { mode in
         Button {
@@ -76,6 +95,23 @@ struct SearchModeSegmentView: View {
         }
       }
     }
+  }
+
+  // MARK: - Nearby Only Info
+
+  private var nearbyOnlyInfo: some View {
+    HStack(spacing: 6) {
+      Image(systemName: "info.circle.fill")
+        .font(.system(size: 12))
+      Text("Usando Apple Maps para buscar restaurantes na sua cidade")
+        .font(.caption)
+    }
+    .foregroundStyle(AppColors.textSecondary)
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(AppColors.divider.opacity(0.3), in: RoundedRectangle(cornerRadius: 10))
+    .accessibilityLabel("Busca via Apple Maps disponível para sua localização")
   }
 }
 

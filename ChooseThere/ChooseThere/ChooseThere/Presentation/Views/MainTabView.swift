@@ -8,7 +8,8 @@
 import SwiftData
 import SwiftUI
 
-/// Container principal com TabBar para navegação entre as 3 áreas do app
+/// Container principal com TabBar para navegação entre as áreas do app
+/// A aba "Minha Base" só aparece quando São Paulo está selecionado
 struct MainTabView: View {
   @Environment(AppRouter.self) private var router
   @State private var selectedTab: Tab = .draw
@@ -25,15 +26,26 @@ struct MainTabView: View {
           case .draw:
             PreferencesView()
           case .restaurants:
-            RestaurantListView()
+            // Só exibe se São Paulo está selecionado
+            if AppSettingsStorage.isSaoPauloSelected {
+              RestaurantListView()
+            } else {
+              PreferencesView() // Fallback para tela principal
+            }
           }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-        // Custom TabBar - sempre visível
+        // Custom TabBar - apenas tabs visíveis
         CustomTabBar(selectedTab: $selectedTab)
       }
       .background(AppColors.background)
+      .onAppear {
+        // Redireciona para tab "Escolher" se estava em "Minha Base" e não está em SP
+        if !AppSettingsStorage.isSaoPauloSelected && selectedTab == .restaurants {
+          selectedTab = .draw
+        }
+      }
       
       // Overlay: rotas empilhadas sobre as tabs
       if router.hasOverlay {
